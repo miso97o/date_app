@@ -6,6 +6,7 @@ import ValidationRules from '../../utils/forms/validationRules';
 import {connect} from 'react-redux';
 import {signIn, signUp} from '../../store/actions/user_action';
 import {bindActionCreators} from 'redux';
+import {setTokens} from '../../utils/misc';
 
 class AuthForm extends Component {
   state = {
@@ -116,13 +117,28 @@ class AuthForm extends Component {
     if (isFormValid) {
       // 입력한 형식이 맞는지
       if (this.state.type === '로그인') {
-        this.props.signIn(submittedForm);
+        this.props.signIn(submittedForm).then(() => {
+          this.manageAccess();
+        });
       } else {
-        this.props.signUp(submittedForm);
+        this.props.signUp(submittedForm).then(() => {
+          this.manageAccess();
+        });
       }
     } else {
       this.setState({
         hasErrors: true,
+      });
+    }
+  };
+
+  manageAccess = () => {
+    if (!this.props.User.auth.userId) {
+      this.setState({hasErrors: true});
+    } else {
+      setTokens(this.props.User.auth, () => {
+        this.setState({hasErrors: false});
+        this.props.goWithoutLogin();
       });
     }
   };
@@ -209,7 +225,7 @@ const styles = StyleSheet.create({
 
 function mapStateToProps(state) {
   return {
-    // 리액트 네이티브 세계관의 User Props에 Store가 가진 state의 User를 넣어줌
+    // 리액트 네이티브 세계관의 User Props에 Redux Store가 가진 state의 User를 넣어줌
     User: state.User,
   };
 }

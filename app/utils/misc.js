@@ -18,8 +18,6 @@ export const setTokens = async (values, callBack) => {
   } catch (e) {
     //save error
   }
-
-  console.log('Done.');
 };
 
 // 저장한 토큰을 가져옴

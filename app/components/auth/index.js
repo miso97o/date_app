@@ -45,7 +45,7 @@ class AuthComponent extends Component {
           }
         });
       }
-      console.log('Get Tokens: ', value);
+      // console.log('Get Tokens: ', value);
     });
   }
 

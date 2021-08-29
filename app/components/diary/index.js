@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import {connect} from 'react-redux';
 import {getDiaries} from '../../store/actions/diary_action';
+import TextTruncate from 'react-native-text-truncate';
 
 // 스마트폰 기종에 관계없이 상대적인 길이를 나타내기위해 사용하는 변수
 const screenHeight = Dimensions.get('window').height;
@@ -26,7 +27,16 @@ class DiaryComponent extends Component {
     // action creator에서 action을 넘길때 payload에 DiaryData라는 배열을 넘기고 그것을 documens에 저장했음
     Diaries.documents
       ? Diaries.documents.map((item, index) => (
-          <TouchableOpacity key={index}>
+          <TouchableOpacity
+            key={index}
+            onPress={() => {
+              this.props.navigation.push('DiaryDocu', {
+                newDiray: false,
+                diaryData: item,
+                index: index,
+                id: item.data.id,
+              });
+            }}>
             <View style={styles.diaryContainer}>
               <View style={{height: 160}}>
                 {item.data.imagePath ? (
@@ -71,7 +81,9 @@ class DiaryComponent extends Component {
                     <Text style={{fontSize: 16, fontWeight: 'bold'}}>
                       Description:{' '}
                     </Text>
-                    <Text style={{fontSize: 16}}>{item.data.description}</Text>
+                    <TextTruncate style={{fontSize: 16}} numberOfLines={2}>
+                      {item.data.description}
+                    </TextTruncate>
                   </View>
                 ) : null}
               </View>
@@ -80,11 +92,24 @@ class DiaryComponent extends Component {
         ))
       : null;
 
+  checkNextID = (Diaries) => {
+    if (Diaries.documents.length > 0) {
+      let numOfArrayElements = Diaries.documents.length;
+      let lastDiaryIndex = Number(numOfArrayElements) - 1;
+      let NextDiaryID = Diaries.documents[lastDiaryIndex].data.id + 1;
+      return NextDiaryID;
+    } else {
+      return 0;
+    }
+  };
+
   render() {
     return (
       <View>
         <ScrollView style={{backgroundColor: '#f0f0f0'}}>
-          {this.renderDiary(this.props.Diaries)}
+          <View style={{flexDirection: 'column-reverse'}}>
+            {this.renderDiary(this.props.Diaries)}
+          </View>
         </ScrollView>
         <TouchableOpacity
           style={{
@@ -93,7 +118,12 @@ class DiaryComponent extends Component {
             top: screenHeight * 0.7,
           }}
           onPress={() =>
-            this.props.navigation.navigate('DiaryDocu', {newDiary: true})
+            this.props.navigation.push('DiaryDocu', {
+              // index는 Diary의 순서를 나타내고 id는 Diary의 고유한 id를 나타냄. id는 다른 diary가 수정, 삭제 되어도 변하지 않음
+              newDiary: true,
+              index: this.props.Diaries.documents.length,
+              id: this.checkNextID(this.props.Diaries),
+            })
           }>
           <Image
             source={require('../../assests/images/pen_circle.png')}

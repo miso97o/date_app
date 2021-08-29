@@ -96,6 +96,7 @@ const AppTabComponent = () => {
         style: {
           backgroundColor: 'skyblue',
         },
+        keyboardHidesTabBar: true,
       }}
       initialRouteName="Diary"
       screenOptions={({route}) => ({

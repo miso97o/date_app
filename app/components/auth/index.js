@@ -1,12 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, {Component} from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  ActivityIndicator,
-  ScrollView,
-} from 'react-native';
+import {StyleSheet, View, Text, ScrollView} from 'react-native';
 import AuthLogo from './authLogo';
 import AuthForm from './authForm';
 import {getTokens, setTokens} from '../../utils/misc';
@@ -16,10 +10,6 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
 class AuthComponent extends Component {
-  state = {
-    loading: false,
-  };
-
   goWithoutLogin = () => {
     this.props.navigation.navigate('AppTabComponent');
   };
@@ -32,40 +22,34 @@ class AuthComponent extends Component {
       ['@learn_app@refToken' 'gdfhwe..']
       */
     getTokens((value) => {
-      if (value[1][1] === null) {
-        this.setState({loading: false});
-      } else {
+      // token을 통해 로그인 정보가 있는지 확인
+      if (value[1][1] !== null) {
+        // token이 있으면 autoSignIn 함수를 통해 로그인정보를 받아오고 받아온 로그인정보가 유효하면 화면이동
         this.props.autoSignIn(value[2][1]).then(() => {
-          if (!this.props.User.auth.token) {
-            this.setState({loading: false});
-          } else {
+          if (this.props.User.auth.token) {
             setTokens(this.props.User.auth, () => {
               this.goWithoutLogin();
             });
           }
         });
       }
-      // console.log('Get Tokens: ', value);
+    });
+    // beforeRemove는 유저가 이전화면으롤 떠나지 못하게 함.
+    this.props.navigation.addListener('beforeRemove', (e) => {
+      // preventDefault는 이벤트로 정의된 기본 액션을 취함
+      e.preventDefault();
     });
   }
 
   render() {
-    if (this.state.loading) {
-      return (
-        <View style={styles.loading}>
-          <ActivityIndicator />
+    return (
+      <ScrollView style={styles.container}>
+        <View>
+          <AuthLogo />
+          <AuthForm goWithoutLogin={this.goWithoutLogin} />
         </View>
-      );
-    } else {
-      return (
-        <ScrollView style={styles.container}>
-          <View>
-            <AuthLogo />
-            <AuthForm goWithoutLogin={this.goWithoutLogin} />
-          </View>
-        </ScrollView>
-      );
-    }
+      </ScrollView>
+    );
   }
 }
 

@@ -1,3 +1,4 @@
+/* eslint-disable no-alert */
 /* eslint-disable react-native/no-inline-styles */
 import React, {Component} from 'react';
 import {
@@ -31,9 +32,10 @@ class DiaryDocu extends Component {
             date: params.diaryData.data.date,
             title: params.diaryData.data.title,
             description: params.diaryData.data.description,
-            imagePath: params.diaryData.data.imagePath,
+            imagePath: params.diaryData.data.imagePath, // storage의 index값이 들어감 "index2"처럼
           },
-          image: '',
+          image: '', // 갤러리에서 이미지를 추가할때 사용하는 변수. uploadImage 함수에서 사용
+          userId: params.userId,
         })
       : (this.state = {
           newDiary: true,
@@ -46,6 +48,7 @@ class DiaryDocu extends Component {
             description: '',
             imagePath: '',
           },
+          userId: params.userId,
         });
     // console.warn(this.state);
     !params.newDiary && params.diaryData.data.imagePath
@@ -82,7 +85,7 @@ class DiaryDocu extends Component {
   getImage = () => {
     storage
       .ref('diaryimage')
-      .child(`index${this.state.diaryData.id}/image.jpg`)
+      .child(`${this.state.userId}/${this.state.diaryData.imagePath}/image.jpg`)
       .getDownloadURL()
       .then((url) => {
         this.setState({image: url});
@@ -97,7 +100,7 @@ class DiaryDocu extends Component {
         image: response.uri,
       });
     });
-    let imageDir = `diaryimage/index${this.state.diaryData.id}`;
+    let imageDir = `index${this.state.diaryData.id}`;
     this.setState((prevState) => ({
       diaryData: {
         ...prevState.diaryData,
@@ -108,10 +111,11 @@ class DiaryDocu extends Component {
 
   deleteData = async () => {
     const id = this.state.diaryData.id;
+    const userId = this.state.userId;
     // child 함수는 인자로 들어간 파일의 경로를 찾음
-    const databaseDirectory = `diary/${id}`;
+    const databaseDirectory = `diary/${userId}/${id}`;
     const databaseRef = database.ref(databaseDirectory).child('data');
-    const storageDirectory = `diaryimage/index${id}`;
+    const storageDirectory = `diaryimage/${userId}/index${id}`;
     const storageRef = storage.ref(storageDirectory).child('image.jpg');
 
     try {
@@ -141,12 +145,13 @@ class DiaryDocu extends Component {
   createData = async () => {
     this.setState({isLoading: true});
 
+    const userId = this.state.userId;
     const data = this.state.diaryData;
     const id = data.id;
 
-    const databaseDirectory = `diary/${id}`;
+    const databaseDirectory = `diary/${userId}/${id}`;
     const databaseRef = database.ref(databaseDirectory);
-    const storageDirectory = `diaryimage/index${id}/image.jpg`;
+    const storageDirectory = `diaryimage/${userId}/index${id}/image.jpg`;
 
     try {
       // set = databaseRef의 주소에 data를 쓰는 함수

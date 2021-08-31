@@ -22,6 +22,7 @@ firebase.initializeApp(firebaseConfig);
 
 export const storage = firebase.storage();
 export const database = firebase.database();
+export const auth = firebase.auth();
 
 // 로그인하면 그 정보에 대한 토큰을 로컬저장소에 저장
 export const setTokens = async (values, callBack) => {
@@ -56,4 +57,16 @@ export const getTokens = async (callBack) => {
 
   // example console.log output:
   // [ ['@MyApp_user', 'myUserValue'], ['@MyApp_key', 'myKeyValue'] ]
+};
+
+export const removeTokens = async (callBack) => {
+  try {
+    await AsyncStorage.multiRemove([
+      '@learn_app@userId',
+      '@learn_app@token',
+      '@learn_app@refToken',
+    ]).then(() => {
+      callBack();
+    });
+  } catch (e) {}
 };

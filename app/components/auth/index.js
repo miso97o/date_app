@@ -77,6 +77,7 @@ function mapStateToProps(state) {
 }
 
 function mapDispatchToProps(dispatch) {
+  // reducer에 action을 알리는 함수 dispatch를 props와 엮음
   return bindActionCreators({autoSignIn}, dispatch);
 }
 

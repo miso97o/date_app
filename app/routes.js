@@ -7,17 +7,17 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import SignIn from './components/auth';
 import Diary from './components/diary';
 import News from './components/news';
+import Friends from './components/friends';
 
 import DiaryDocu from './components/diary/diaryDocu';
 import Logo from './utils/logo';
-import Loading from './components/auth/loading';
+// import Loading from './components/auth/loading';
 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const AuthStack = createStackNavigator();
 const MainScreenTab = createBottomTabNavigator();
 const DiaryStack = createStackNavigator();
-const NewsStack = createStackNavigator();
 
 const headerConfig = {
   headerTitleAlign: 'center',
@@ -62,6 +62,8 @@ const TabBarIcons = (focused, name) => {
     iconName = 'notebook-outline';
   } else if (name === 'News') {
     iconName = 'newspaper-variant-outline';
+  } else if (name === 'Friends') {
+    iconName = 'account-box-outline';
   }
 
   if (focused) {
@@ -98,6 +100,18 @@ const NewsStackComponent = () => {
   );
 };
 
+const FriendsStackComponent = () => {
+  return (
+    <DiaryStack.Navigator>
+      <DiaryStack.Screen
+        name="Friends"
+        component={Friends}
+        options={headerConfig_}
+      />
+    </DiaryStack.Navigator>
+  );
+};
+
 // 메인이 되는 탭 네비게이터
 const AppTabComponent = () => {
   return (
@@ -115,6 +129,7 @@ const AppTabComponent = () => {
       screenOptions={({route}) => ({
         tabBarIcon: ({focused}) => TabBarIcons(focused, route.name),
       })}>
+      <MainScreenTab.Screen name="Friends" component={FriendsStackComponent} />
       <MainScreenTab.Screen name="Diary" component={DiaryStackComponent} />
       <MainScreenTab.Screen name="News" component={NewsStackComponent} />
     </MainScreenTab.Navigator>
@@ -125,7 +140,7 @@ const AppTabComponent = () => {
 export const RootNavigator = () => {
   return (
     <AuthStack.Navigator screenOptions={{headerShown: false}}>
-      <AuthStack.Screen name="Loading" component={Loading} />
+      {/* <AuthStack.Screen name="Loading" component={Loading} /> */}
       <AuthStack.Screen
         name="SignIn"
         component={SignIn}

@@ -39,6 +39,7 @@ const validateMinLength = (value, ruleValue) => {
   return false;
 };
 
+// 이메일 형식이어야 valid함
 const validateEmail = (value) => {
   const expression =
     /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;

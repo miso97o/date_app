@@ -58,7 +58,7 @@ class NewsComponent extends Component {
     for (let key in data) {
       dustData = data[key];
     }
-    console.log(dustData);
+    // console.log(dustData);
 
     value = dustData.body.items[0].seoul;
 
@@ -119,7 +119,7 @@ class NewsComponent extends Component {
 
   makeCovidData = (data) => {
     let covidData;
-    console.log('covidData', data);
+    // console.log('covidData', data);
     for (let key in data) {
       covidData = data[key];
     }

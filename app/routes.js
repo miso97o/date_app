@@ -8,8 +8,12 @@ import SignIn from './components/auth';
 import Diary from './components/diary';
 import News from './components/news';
 import Friends from './components/friends';
+import Map from './components/map';
 
 import DiaryDocu from './components/diary/diaryDocu';
+import Info from './components/friends/info';
+import Chat from './components/friends/chat';
+import EnlargedImage from './components/friends/enlargeImage';
 import Logo from './utils/logo';
 // import Loading from './components/auth/loading';
 
@@ -25,7 +29,7 @@ const headerConfig = {
   headerStyle: {
     backgroundColor: 'skyblue',
   },
-  headerTitle: <Logo />,
+  headerTitle: '',
   headerTitleStyle: {
     flex: 1,
     textAlign: 'center',
@@ -38,7 +42,7 @@ const headerConfig_ = {
   headerStyle: {
     backgroundColor: 'skyblue',
   },
-  headerTitle: <Logo />,
+  headerTitle: '',
   headerTitleStyle: {
     flex: 1,
     textAlign: 'center',
@@ -78,6 +82,7 @@ const TabBarIcons = (focused, name) => {
 const DiaryStackComponent = () => {
   return (
     <DiaryStack.Navigator>
+      <DiaryStack.Screen name="Map" component={Map} />
       <DiaryStack.Screen
         name="Diary"
         component={Diary}
@@ -100,13 +105,25 @@ const NewsStackComponent = () => {
   );
 };
 
-const FriendsStackComponent = () => {
+const FriendsStackComponent = ({navigation, route}) => {
+  // console.log('route.state ? ', route.state && route.state);
+  // console.log('route.state.index ? ', route.state && route.state.index);
+  route.state && route.state.index > 0
+    ? navigation.setOptions({tabBarVisible: false})
+    : navigation.setOptions({tabBarVisible: true});
   return (
     <DiaryStack.Navigator>
       <DiaryStack.Screen
         name="Friends"
         component={Friends}
         options={headerConfig_}
+      />
+      <DiaryStack.Screen name="Info" component={Info} options={headerConfig} />
+      <DiaryStack.Screen name="Chat" component={Chat} />
+      <DiaryStack.Screen
+        name="EnlargedImage"
+        component={EnlargedImage}
+        options={headerConfig}
       />
     </DiaryStack.Navigator>
   );

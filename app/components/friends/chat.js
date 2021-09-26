@@ -19,21 +19,41 @@ class Chat extends Component {
       Messages: [
         {
           sender: true,
+          name: '나',
           txtMsg: '안녕하세요',
         },
         {
           sender: false,
+          name: '상대',
           txtMsg: '네 안녕하세요',
         },
+        {
+          sender: false,
+          name: '상대',
+          txtMsg: 'ㅎㅎㅎㅎ',
+        },
       ],
-      newMessage: '',
+      newMessage: {
+        sender: true,
+        name: '나',
+        txtMsg: '',
+      },
     };
 
     // console.log(params);
   }
 
   onChangeInput = (value) => {
-    this.setState({newMessage: value});
+    this.setState((prevState) => ({
+      newMessage: {...prevState.newMessage, txtMsg: value},
+    }));
+  };
+
+  pushMessage = (newMsg) => {
+    this.setState((prevState) => ({
+      Messages: [...prevState.Messages, newMsg],
+      newMessage: {txtMsg: ''},
+    }));
   };
 
   render() {
@@ -46,7 +66,8 @@ class Chat extends Component {
         <ScrollView style={{flex: 1, backgroundColor: '#eeeeee'}}>
           {this.state.Messages.map((item, idx) => {
             return item.sender ? (
-              <View style={{alignItems: 'flex-end', margin: 10}}>
+              <View
+                style={{alignItems: 'flex-end', margin: 5, marginRight: 10}}>
                 <Text
                   style={[styles.messages, {backgroundColor: 'yellow'}]}
                   key={idx}>
@@ -54,7 +75,9 @@ class Chat extends Component {
                 </Text>
               </View>
             ) : (
-              <View style={{alignItems: 'flex-start', margin: 10}}>
+              <View
+                style={{alignItems: 'flex-start', margin: 5, marginLeft: 10}}>
+                <Text>{item.name}</Text>
                 <Text
                   style={[styles.messages, {backgroundColor: 'white'}]}
                   key={idx}>
@@ -71,14 +94,19 @@ class Chat extends Component {
             alignItems: 'center',
           }}>
           <TextInput
-            value={this.state.newMessage}
+            value={this.state.newMessage.txtMsg}
             onChangeText={(value) => this.onChangeInput(value)}
             multiline={true}
             autoCapitalize="none"
-            style={[{width: 375, backgroundColor: 'white'}, styles.messages]}
+            style={[
+              {width: '84%', height: 48, backgroundColor: 'white'},
+              styles.messages,
+            ]}
           />
-          <TouchableOpacity style={{backgroundColor: 'skyblue', padding: 7}}>
-            <Icon name="send-circle-outline" size={24} />
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => this.pushMessage(this.state.newMessage)}>
+            <Icon name="send-circle-outline" size={28} />
           </TouchableOpacity>
         </View>
       </View>
@@ -88,9 +116,17 @@ class Chat extends Component {
 
 const styles = StyleSheet.create({
   messages: {
-    padding: 5,
+    padding: 7,
     justifyContent: 'center',
-    fontSize: 16,
+    fontSize: 18,
+  },
+  button: {
+    backgroundColor: 'skyblue',
+    padding: 8,
+    width: '16%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
   },
 });
 

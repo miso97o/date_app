@@ -42,7 +42,6 @@ const headerConfig_ = {
   headerStyle: {
     backgroundColor: 'skyblue',
   },
-  headerTitle: '',
   headerTitleStyle: {
     flex: 1,
     textAlign: 'center',
@@ -82,7 +81,12 @@ const TabBarIcons = (focused, name) => {
 const DiaryStackComponent = () => {
   return (
     <DiaryStack.Navigator>
-      <DiaryStack.Screen name="Map" component={Map} />
+      <DiaryStack.Screen
+        name="Map"
+        component={Map}
+        options={{headerShown: false}}
+      />
+      <DiaryStack.Screen name="Chat" component={Chat} />
       <DiaryStack.Screen
         name="Diary"
         component={Diary}

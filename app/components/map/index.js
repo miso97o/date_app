@@ -5,18 +5,11 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ImageBackground,
-  Image,
+  TextInput,
   BackHandler,
 } from 'react-native';
-import NaverMapView, {
-  Circle,
-  Marker,
-  Path,
-  Polyline,
-  Polygon,
-  Align,
-} from 'react-native-nmap';
+import NaverMapView, {Marker, Align} from 'react-native-nmap';
+import {Picker} from '@react-native-picker/picker';
 import {CLIENT_ID, CLIENT_SECERET} from '../../utils/misc';
 
 class MapComponent extends Component {
@@ -31,7 +24,9 @@ class MapComponent extends Component {
       longitude: 0,
     },
     touched: false,
-    mode: 'create', // create or enter
+    mode: 'enter', // create or enter
+    title: '',
+    category: '',
   };
 
   getloc = (e) => {
@@ -69,7 +64,9 @@ class MapComponent extends Component {
           }
         }
         console.log('road: ', roadAddr + ' jibun: ', jibunAddr);
-        this.setState({address: roadAddr});
+        roadAddr === ''
+          ? this.setState({address: jibunAddr})
+          : this.setState({address: roadAddr});
       })
       .catch((e) => console.log(e));
   };
@@ -77,6 +74,17 @@ class MapComponent extends Component {
   touchedMarker = (P) => {
     // this.getAddress(P.longitude, P.latitude);
     return <Marker coordinate={P} width={80} height={90} />;
+  };
+
+  modeChange = () => {
+    this.state.mode === 'create'
+      ? this.setState({mode: 'enter'})
+      : this.setState({mode: 'create'});
+    console.log(this.state.mode);
+  };
+
+  onChangeInput = (value) => {
+    this.setState({title: value});
   };
 
   componentDidMount() {
@@ -93,125 +101,132 @@ class MapComponent extends Component {
     const P = [P0, P1, P2, P3];
     return (
       <View>
-        {this.state.touched ? (
+        {this.state.mode === 'enter' ? (
+          <View>
+            {this.state.touched ? (
+              // enter에 touched가 true
+              <View>
+                <NaverMapView
+                  style={{width: '100%', height: '85%'}}
+                  showsMyLocationButton={true}
+                  center={{...this.state.marker, zoom: 16}}
+                  onMapClick={() => this.setState({touched: false})}>
+                  {P.map((item, idx) => (
+                    <Marker
+                      coordinate={item}
+                      key={idx}
+                      onClick={() => [
+                        this.setState({
+                          marker: {
+                            longitude: item.longitude,
+                            latitude: item.latitude,
+                          },
+                        }),
+                        this.getAddress(item.longitude, item.latitude),
+                      ]}
+                    />
+                  ))}
+                  {this.state.touched
+                    ? this.touchedMarker(this.state.marker)
+                    : null}
+                </NaverMapView>
+                <View style={styles.container}>
+                  <View>
+                    <Text style={styles.titleText}>제목</Text>
+                    <Text style={styles.defText}>카테고리</Text>
+                    <Text style={styles.defText}>{this.state.address}</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => this.props.navigation.navigate('Chat')}>
+                    <Text>참여</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              // enter에 touched가 false
+              <View>
+                <NaverMapView
+                  style={{width: '100%', height: '90%'}}
+                  showsMyLocationButton={true}
+                  center={{...P0, zoom: 16}}>
+                  {P.map((item, idx) => (
+                    <Marker
+                      coordinate={item}
+                      key={idx}
+                      onClick={() => [
+                        this.setState({
+                          touched: true,
+                          marker: {
+                            longitude: item.longitude,
+                            latitude: item.latitude,
+                          },
+                        }),
+                        this.getAddress(item.longitude, item.latitude),
+                      ]}
+                    />
+                  ))}
+                  {this.state.touched
+                    ? this.touchedMarker(this.state.marker)
+                    : null}
+                </NaverMapView>
+                <View
+                  style={{
+                    height: '10%',
+                    width: '100%',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: '#09affc',
+                  }}>
+                  <TouchableOpacity onPress={() => this.modeChange()}>
+                    <Text style={{fontSize: 30, fontWeight: 'bold'}}>
+                      방 만들기
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </View>
+        ) : (
+          //mode가 create
           <View>
             <NaverMapView
               style={{width: '100%', height: '85%'}}
-              showsMyLocationButton={true}
-              center={{...this.state.marker, zoom: 16}}
-              // onCameraChange={(e) =>
-              //   console.warn('onCameraChange', JSON.stringify(e))
-              // }
-              onMapClick={(e) => this.getloc(e)}>
-              {P.map((item, idx) => (
-                <Marker
-                  coordinate={item}
-                  key={idx}
-                  onClick={() => [
-                    this.setState({
-                      touched: true,
-                      marker: {
-                        longitude: item.longitude,
-                        latitude: item.latitude,
-                      },
-                    }),
-                    this.getAddress(item.longitude, item.latitude),
-                  ]}
-                />
-              ))}
-              {/* {this.state.marker ? this.getAddress(this.state.marker) : null} */}
-              {this.state.touched
-                ? this.touchedMarker(this.state.marker)
-                : null}
-              {this.state.loc.latitude !== 0 ? (
-                <Marker
-                  coordinate={this.state.loc}
-                  onClick={() =>
-                    this.setState({
-                      touched: true,
-                      marker: {
-                        longitude: this.state.loc.longitude,
-                        latitude: this.state.loc.latitude,
-                      },
-                    })
-                  }
-                />
-              ) : null}
+              center={{...P0, zoom: 16}}
+              onMapClick={(e) => [
+                this.getloc(e),
+                this.getAddress(e.longitude, e.latitude),
+              ]}>
+              <Marker coordinate={this.state.loc} />
             </NaverMapView>
             <View style={styles.container}>
               <View>
-                <Text style={styles.titleText}>제목</Text>
-                <Text style={styles.defText}>카테고리</Text>
-                <Text style={styles.defText}>{this.state.address}</Text>
+                <TextInput
+                  value={this.state.title}
+                  onChangeText={(value) => this.onChangeInput(value)}
+                  style={[
+                    styles.titleText,
+                    {backgroundColor: 'white', marginLeft: 5},
+                  ]}
+                  autoCapitalize={false}
+                  placeholder="제목을 입력해주세요. "
+                />
+                <Picker
+                  selectedValue={this.state.category}
+                  onValueChange={(value, idx) =>
+                    this.setState({category: value})
+                  }
+                  style={{backgroundColor: 'white', margin: 5, height: 20}}>
+                  <Picker.Item label="운동" value="운동" />
+                  <Picker.Item label="거래" value="거래" />
+                  <Picker.Item label="이성" value="이성" />
+                  <Picker.Item label="식사" value="식사" />
+                </Picker>
               </View>
               <TouchableOpacity
-                style={{
-                  backgroundColor: 'skyblue',
-                  borderRadius: 15,
-                  padding: 15,
-                  marginRight: 15,
-                }}
-                onPress={() => this.props.navigation.navigate('Chat')}>
-                <Text>참여</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ) : (
-          <View>
-            <NaverMapView
-              style={{width: '100%', height: '90%'}}
-              showsMyLocationButton={true}
-              center={{...P0, zoom: 16}}
-              onMapClick={(e) => this.getloc(e)}>
-              {P.map((item, idx) => (
-                <Marker
-                  coordinate={item}
-                  key={idx}
-                  onClick={() => [
-                    this.setState({
-                      touched: true,
-                      marker: {
-                        longitude: item.longitude,
-                        latitude: item.latitude,
-                      },
-                    }),
-                    this.getAddress(item.longitude, item.latitude),
-                  ]}
-                />
-              ))}
-              {this.state.touched
-                ? this.touchedMarker(this.state.marker)
-                : null}
-              {this.state.loc.latitude !== 0 ? (
-                <Marker
-                  coordinate={this.state.loc}
-                  onClick={() => [
-                    this.setState({
-                      touched: true,
-                      marker: {
-                        longitude: this.state.loc.longitude,
-                        latitude: this.state.loc.latitude,
-                      },
-                    }),
-                    this.getAddress(
-                      this.state.loc.longitude,
-                      this.state.loc.latitude,
-                    ),
-                  ]}
-                />
-              ) : null}
-            </NaverMapView>
-            <View
-              style={{
-                height: '10%',
-                width: '100%',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <TouchableOpacity>
-                <Text style={{fontSize: 30, fontWeight: 'bold'}}>
-                  방 만들기
-                </Text>
+                style={styles.button}
+                onPress={() => this.modeChange()}>
+                <Text>완성</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -239,6 +254,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     paddingLeft: 10,
     padding: 2,
+  },
+  button: {
+    backgroundColor: 'skyblue',
+    borderRadius: 15,
+    padding: 15,
+    marginRight: 15,
   },
 });
 

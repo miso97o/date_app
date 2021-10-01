@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import NaverMapView, {Marker, Align} from 'react-native-nmap';
 import {Picker} from '@react-native-picker/picker';
-import {CLIENT_ID, CLIENT_SECERET} from '../../utils/misc';
+import {CLIENT_ID, CLIENT_SECERET, URL} from '../../utils/misc';
 
 class MapComponent extends Component {
   state = {
@@ -27,6 +27,7 @@ class MapComponent extends Component {
     mode: 'enter', // create or enter
     title: '',
     category: '',
+    roomId: '',
   };
 
   getloc = (e) => {
@@ -81,6 +82,18 @@ class MapComponent extends Component {
       ? this.setState({mode: 'enter'})
       : this.setState({mode: 'create'});
     console.log(this.state.mode);
+  };
+
+  createRoom = async () => {
+    await fetch(`${URL}chat/createRoom?name=${this.state.title}`, {
+      method: 'POST',
+    })
+      .then((response) => response.json())
+      .then((responseJson) => {
+        console.log(responseJson);
+        this.setState({roomId: responseJson.roomId});
+        this.props.navigation.navigate('Chat', {roomId: responseJson.roomId});
+      });
   };
 
   onChangeInput = (value) => {
@@ -138,7 +151,11 @@ class MapComponent extends Component {
                   </View>
                   <TouchableOpacity
                     style={styles.button}
-                    onPress={() => this.props.navigation.navigate('Chat')}>
+                    onPress={() =>
+                      this.props.navigation.navigate('Chat', {
+                        roomId: 'bc0f702e-d499-428f-a09e-00597873dc80',
+                      })
+                    }>
                     <Text>참여</Text>
                   </TouchableOpacity>
                 </View>
@@ -208,7 +225,7 @@ class MapComponent extends Component {
                     styles.titleText,
                     {backgroundColor: 'white', marginLeft: 5},
                   ]}
-                  autoCapitalize={false}
+                  autoCapitalize={'none'}
                   placeholder="제목을 입력해주세요. "
                 />
                 <Picker
@@ -225,7 +242,7 @@ class MapComponent extends Component {
               </View>
               <TouchableOpacity
                 style={styles.button}
-                onPress={() => this.modeChange()}>
+                onPress={() => this.createRoom()}>
                 <Text>완성</Text>
               </TouchableOpacity>
             </View>

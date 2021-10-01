@@ -10,37 +10,47 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
+import SockJS from 'sockjs-client';
+import Stomp from 'stompjs';
+import {URL} from '../../utils/misc';
+import {
+  sendMsg,
+  connection,
+  recieveMsg,
+  ws,
+} from '../../store/actions/chat_action';
+
+import {connect} from 'react-redux';
+
 class Chat extends Component {
   constructor(props) {
     super(props);
-    // const params = props.route.params;
-
+    const params = props.route.params;
     this.state = {
-      Messages: [
-        {
-          sender: true,
-          name: '나',
-          txtMsg: '안녕하세요',
-        },
-        {
-          sender: false,
-          name: '상대',
-          txtMsg: '네 안녕하세요',
-        },
-        {
-          sender: false,
-          name: '상대',
-          txtMsg: 'ㅎㅎㅎㅎ',
-        },
-      ],
+      Messages: [],
+      roomId: params.roomId,
+      senderName: '나',
       newMessage: {
         sender: true,
         name: '나',
         txtMsg: '',
       },
     };
-
-    // console.log(params);
+    // connection(params.roomId);
+    var sock = new SockJS(`${URL}/start-ws`);
+    var ws = Stomp.over(sock);
+    ws.connect({}, () => {
+      ws.subscribe('/sub/chat/room/' + params.roomId, (msg) => {
+        var recv = JSON.parse(msg.body);
+        this.props.recieveMsg(recv);
+      });
+      ws.send(
+        '/pub/chat/message',
+        {},
+        JSON.stringify({roomId: params.roomId, sender: '나'}),
+      ),
+        (e) => alert('error', e);
+    });
   }
 
   onChangeInput = (value) => {
@@ -50,10 +60,17 @@ class Chat extends Component {
   };
 
   pushMessage = (newMsg) => {
-    this.setState((prevState) => ({
-      Messages: [...prevState.Messages, newMsg],
-      newMessage: {txtMsg: ''},
-    }));
+    if (newMsg !== '') {
+      this.props.sendMsg({
+        roomId: this.state.roomId,
+        sender: this.state.senderName,
+        txtMsg: newMsg,
+      });
+      this.setState((prevState) => ({
+        newMessage: {txtMsg: ''},
+      }));
+    }
+    console.log(this.props.Chat);
   };
 
   render() {
@@ -64,7 +81,7 @@ class Chat extends Component {
           justifyContent: 'space-between',
         }}>
         <ScrollView style={{flex: 1, backgroundColor: '#eeeeee'}}>
-          {this.state.Messages.map((item, idx) => {
+          {this.props.Chat.messages.map((item, idx) => {
             return item.sender ? (
               <View
                 style={{alignItems: 'flex-end', margin: 5, marginRight: 10}}>
@@ -105,7 +122,7 @@ class Chat extends Component {
           />
           <TouchableOpacity
             style={styles.button}
-            onPress={() => this.pushMessage(this.state.newMessage)}>
+            onPress={() => this.pushMessage(this.state.newMessage.txtMsg)}>
             <Icon name="send-circle-outline" size={28} />
           </TouchableOpacity>
         </View>
@@ -130,4 +147,8 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Chat;
+function mapStateToProps(state) {
+  return {Chat: state.Chat};
+}
+
+export default connect(mapStateToProps, {sendMsg, recieveMsg})(Chat);

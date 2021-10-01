@@ -4,6 +4,7 @@ export const SIGNIN = `https://identitytoolkit.googleapis.com/v1/accounts:signIn
 export const REFRESH = `https://securetoken.googleapis.com/v1/token?key=${APIKEY}`;
 export const CLIENT_ID = '5gikt2ep43';
 export const CLIENT_SECERET = 'p3k7xH75G8QvPxWORocGDJrKmOVIzCHzZGf2oaWr';
+export const URL = 'http://13.125.119.211:8080/';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import firebase from 'firebase';

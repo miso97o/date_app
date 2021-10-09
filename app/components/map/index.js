@@ -6,11 +6,21 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
-  BackHandler,
+  PermissionsAndroid,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import NaverMapView, {Marker, Align} from 'react-native-nmap';
 import {Picker} from '@react-native-picker/picker';
+import Geolocation from 'react-native-geolocation-service';
+
 import {CLIENT_ID, CLIENT_SECERET, URL} from '../../utils/misc';
+
+async function requestPermission() {
+  return await PermissionsAndroid.request(
+    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+  );
+}
 
 class MapComponent extends Component {
   state = {
@@ -23,10 +33,15 @@ class MapComponent extends Component {
       latitude: 0,
       longitude: 0,
     },
+    currentLocation: {
+      longitude: 0,
+      latitude: 0,
+    },
+    rooms: [],
     touched: false,
     mode: 'enter', // create or enter
     title: '',
-    category: '',
+    category: 'exercise',
     roomId: '',
   };
 
@@ -73,7 +88,6 @@ class MapComponent extends Component {
   };
 
   touchedMarker = (P) => {
-    // this.getAddress(P.longitude, P.latitude);
     return <Marker coordinate={P} width={80} height={90} />;
   };
 
@@ -81,19 +95,57 @@ class MapComponent extends Component {
     this.state.mode === 'create'
       ? this.setState({mode: 'enter'})
       : this.setState({mode: 'create'});
-    console.log(this.state.mode);
+    this.setState({title: '', loc: {latitude: 0, longitude: 0}});
   };
 
   createRoom = async () => {
-    await fetch(`${URL}chat/createRoom?name=${this.state.title}`, {
+    await fetch(`${URL}chat/createRoom`, {
       method: 'POST',
+      headers: {
+        // eslint-disable-next-line prettier/prettier
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: this.state.title,
+        userId: 'userId2',
+        latitude: this.state.loc.latitude,
+        longitude: this.state.loc.longitude,
+        category: this.state.category,
+      }),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        console.log('res: ', response);
+        response.json();
+      })
       .then((responseJson) => {
-        console.log(responseJson);
+        console.log('resjson: ', responseJson);
         this.setState({roomId: responseJson.roomId});
         this.props.navigation.navigate('Chat', {roomId: responseJson.roomId});
       });
+  };
+
+  search = () => {
+    console.log('search button touched!!');
+    this.setState({touched: false});
+  };
+
+  getRooms = async () => {
+    await fetch(`${URL}chat/rooms`)
+      .then((response) => response.json())
+      .then((responseJson) => {
+        console.log(responseJson);
+        this.setState({rooms: responseJson});
+      });
+  };
+
+  enterRoom = async () => {
+    await fetch(`${URL}chat/room/${this.state.roomId}?userId=userId1`).then(
+      (res) => {
+        console.log(res);
+        this.props.navigation.navigate('Chat', {roomId: this.state.roomId});
+      },
+    );
   };
 
   onChangeInput = (value) => {
@@ -101,17 +153,36 @@ class MapComponent extends Component {
   };
 
   componentDidMount() {
-    BackHandler.addEventListener('hardwareBackPress', () => {
-      return true;
+    requestPermission().then((result) => {
+      // console.log({result});
+      if (result === 'granted') {
+        Geolocation.getCurrentPosition(
+          (pos) => {
+            // console.log(pos);
+            this.setState({
+              currentLocation: {
+                longitude: pos.coords.longitude,
+                latitude: pos.coords.latitude,
+              },
+            });
+          },
+          (error) => {
+            console.log(error);
+          },
+          {enableHighAccuracy: true, timeout: 3600, maximumAge: 3600},
+        );
+      }
+    });
+    this.getRooms();
+    // beforeRemove는 유저가 이전화면으롤 떠나지 못하게 함.
+    this.props.navigation.addListener('beforeRemove', (e) => {
+      // preventDefault는 이벤트로 정의된 기본 액션을 취함
+      e.preventDefault();
     });
   }
 
   render() {
-    const P0 = {latitude: 37.564362, longitude: 126.977011};
-    const P1 = {latitude: 37.565051, longitude: 126.978567};
-    const P2 = {latitude: 37.565383, longitude: 126.976292};
-    const P3 = {latitude: 37.564562, longitude: 126.976592};
-    const P = [P0, P1, P2, P3];
+    var P = this.state.rooms;
     return (
       <View>
         {this.state.mode === 'enter' ? (
@@ -126,35 +197,45 @@ class MapComponent extends Component {
                   onMapClick={() => this.setState({touched: false})}>
                   {P.map((item, idx) => (
                     <Marker
-                      coordinate={item}
+                      coordinate={{
+                        latitude: item.latitude,
+                        longitude: item.longitude,
+                      }}
                       key={idx}
                       onClick={() => [
                         this.setState({
+                          touched: true,
                           marker: {
                             longitude: item.longitude,
                             latitude: item.latitude,
                           },
+                          title: item.name,
+                          category: item.category,
+                          roomId: item.roomId,
                         }),
                         this.getAddress(item.longitude, item.latitude),
                       ]}
                     />
                   ))}
-                  {this.state.touched
-                    ? this.touchedMarker(this.state.marker)
-                    : null}
                 </NaverMapView>
+                <View style={styles.searchButton}>
+                  <TouchableOpacity>
+                    <Icon name="search-web" size={44} />
+                  </TouchableOpacity>
+                </View>
                 <View style={styles.container}>
-                  <View>
-                    <Text style={styles.titleText}>제목</Text>
-                    <Text style={styles.defText}>카테고리</Text>
+                  <View style={{width: '80%'}}>
+                    <Text style={styles.titleText}>{this.state.title}</Text>
+                    <Text style={styles.defText}>{this.state.category}</Text>
                     <Text style={styles.defText}>{this.state.address}</Text>
                   </View>
                   <TouchableOpacity
                     style={styles.button}
                     onPress={() =>
-                      this.props.navigation.navigate('Chat', {
-                        roomId: 'bc0f702e-d499-428f-a09e-00597873dc80',
-                      })
+                      // this.props.navigation.navigate('Chat', {
+                      //   roomId: 'bc0f702e-d499-428f-a09e-00597873dc80',
+                      // })
+                      this.enterRoom()
                     }>
                     <Text>참여</Text>
                   </TouchableOpacity>
@@ -166,10 +247,13 @@ class MapComponent extends Component {
                 <NaverMapView
                   style={{width: '100%', height: '90%'}}
                   showsMyLocationButton={true}
-                  center={{...P0, zoom: 16}}>
+                  center={{...this.state.currentLocation, zoom: 16}}>
                   {P.map((item, idx) => (
                     <Marker
-                      coordinate={item}
+                      coordinate={{
+                        latitude: item.latitude,
+                        longitude: item.longitude,
+                      }}
                       key={idx}
                       onClick={() => [
                         this.setState({
@@ -178,6 +262,9 @@ class MapComponent extends Component {
                             longitude: item.longitude,
                             latitude: item.latitude,
                           },
+                          title: item.name,
+                          category: item.category,
+                          roomId: item.roomId,
                         }),
                         this.getAddress(item.longitude, item.latitude),
                       ]}
@@ -187,6 +274,12 @@ class MapComponent extends Component {
                     ? this.touchedMarker(this.state.marker)
                     : null}
                 </NaverMapView>
+                {/* 검색 버튼 */}
+                <View style={styles.searchButton}>
+                  <TouchableOpacity>
+                    <Icon name="search-web" size={44} />
+                  </TouchableOpacity>
+                </View>
                 <View
                   style={{
                     height: '10%',
@@ -208,38 +301,47 @@ class MapComponent extends Component {
           //mode가 create
           <View>
             <NaverMapView
-              style={{width: '100%', height: '85%'}}
-              center={{...P0, zoom: 16}}
+              style={{width: '100%', height: '80%'}}
+              center={{...this.state.currentLocation, zoom: 16}}
               onMapClick={(e) => [
                 this.getloc(e),
                 this.getAddress(e.longitude, e.latitude),
               ]}>
               <Marker coordinate={this.state.loc} />
             </NaverMapView>
-            <View style={styles.container}>
-              <View>
+            <View style={[styles.container, {height: '20%'}]}>
+              <View style={{width: '65%'}}>
                 <TextInput
                   value={this.state.title}
                   onChangeText={(value) => this.onChangeInput(value)}
-                  style={[
-                    styles.titleText,
-                    {backgroundColor: 'white', marginLeft: 5},
-                  ]}
+                  style={[styles.titleText, {backgroundColor: 'white'}]}
                   autoCapitalize={'none'}
-                  placeholder="제목을 입력해주세요. "
+                  placeholder="제목을 입력하세요. "
                 />
                 <Picker
                   selectedValue={this.state.category}
+                  style={{width: 250, height: 30}}
                   onValueChange={(value, idx) =>
                     this.setState({category: value})
                   }
-                  style={{backgroundColor: 'white', margin: 5, height: 20}}>
-                  <Picker.Item label="운동" value="운동" />
-                  <Picker.Item label="거래" value="거래" />
-                  <Picker.Item label="이성" value="이성" />
-                  <Picker.Item label="식사" value="식사" />
+                  itemStyle={{fontSize: 12}}>
+                  <Picker.Item label="선택해주세요." enabled={false} />
+                  <Picker.Item label="운동" value="excercise" />
+                  <Picker.Item label="거래" value="date" />
+                  <Picker.Item label="이성" value="business" />
+                  <Picker.Item label="식사" value="eat" />
                 </Picker>
+                {this.state.loc.latitude !== 0 ? (
+                  <Text style={styles.defText}>{this.state.address}</Text>
+                ) : (
+                  <Text style={styles.defText}>지도에 마커를 찍어주세요.</Text>
+                )}
               </View>
+              <TouchableOpacity
+                style={[styles.button, {marginLeft: 15}]}
+                onPress={() => this.modeChange()}>
+                <Text>취소</Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={styles.button}
                 onPress={() => this.createRoom()}>
@@ -259,7 +361,8 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between',
+    marginLeft: 5,
   },
   defText: {
     padding: 3,
@@ -275,8 +378,19 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: 'skyblue',
     borderRadius: 15,
-    padding: 15,
+    padding: 12,
     marginRight: 15,
+  },
+  searchButton: {
+    backgroundColor: 'white',
+    position: 'absolute',
+    right: 20,
+    top: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 2,
   },
 });
 

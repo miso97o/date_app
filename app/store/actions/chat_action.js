@@ -17,7 +17,7 @@ export const connection = (roomId) => {
     ws.send(
       '/pub/chat/message',
       {},
-      JSON.stringify({roomId: roomId, sender: '나'}),
+      JSON.stringify({roomId: roomId, sender: 'userId1'}),
     ),
       (e) => alert('error', e);
   });
@@ -29,11 +29,11 @@ export const sendMsg =
     ws.send(
       '/pub/chat/message',
       {},
-      JSON.stringify({roomId: roomId, sender: sender, message: txtMsg}),
+      JSON.stringify({roomId: roomId, senderId: sender, message: txtMsg}),
     );
     dispatch({
       type: SEND_MESSAGE,
-      payload: {sender: true, name: '나', txtMsg: txtMsg},
+      payload: {sender: true, name: 'userId1', txtMsg: txtMsg},
     });
   };
 

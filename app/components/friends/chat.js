@@ -13,12 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import {URL} from '../../utils/misc';
-import {
-  sendMsg,
-  connection,
-  recieveMsg,
-  ws,
-} from '../../store/actions/chat_action';
+import {sendMsg, recieveMsg} from '../../store/actions/chat_action';
 
 import {connect} from 'react-redux';
 
@@ -26,18 +21,18 @@ class Chat extends Component {
   constructor(props) {
     super(props);
     const params = props.route.params;
+    console.log(params);
     this.state = {
-      Messages: [],
       roomId: params.roomId,
-      senderName: '나',
+      senderName: params.userId,
       newMessage: {
         sender: true,
-        name: '나',
+        name: params.userId,
         txtMsg: '',
       },
     };
     // connection(params.roomId);
-    var sock = new SockJS(`${URL}/start-ws`);
+    var sock = new SockJS(`${URL}start-ws`);
     var ws = Stomp.over(sock);
     ws.connect({}, () => {
       ws.subscribe('/sub/chat/room/' + params.roomId, (msg) => {
@@ -47,7 +42,7 @@ class Chat extends Component {
       ws.send(
         '/pub/chat/message',
         {},
-        JSON.stringify({roomId: params.roomId, sender: '나'}),
+        JSON.stringify({roomId: params.roomId, sender: params.userId}),
       ),
         (e) => alert('error', e);
     });
@@ -80,7 +75,13 @@ class Chat extends Component {
           flex: 1,
           justifyContent: 'space-between',
         }}>
-        <ScrollView style={{flex: 1, backgroundColor: '#eeeeee'}}>
+        <ScrollView
+          style={{flex: 1, backgroundColor: '#eeeeee'}}
+          ref={(ref) => (this.scrollView = ref)}
+          onContentSizeChange={() => {
+            this.scrollView.scrollToEnd({animated: true});
+          }}
+          onLayout={() => this.scrollView.scrollToEnd({animated: true})}>
           {this.props.Chat.messages.map((item, idx) => {
             return item.sender ? (
               <View

@@ -95,15 +95,13 @@ class MapComponent extends Component {
     this.state.mode === 'create'
       ? this.setState({mode: 'enter'})
       : this.setState({mode: 'create'});
-    this.setState({title: '', loc: {latitude: 0, longitude: 0}});
+    this.setState({title: '', category: '', loc: {latitude: 0, longitude: 0}});
   };
 
   createRoom = async () => {
     await fetch(`${URL}chat/createRoom`, {
       method: 'POST',
       headers: {
-        // eslint-disable-next-line prettier/prettier
-        'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -116,12 +114,12 @@ class MapComponent extends Component {
     })
       .then((response) => {
         console.log('res: ', response);
-        response.json();
+        response.json().then((responseJson) => {
+          this.setState({roomId: responseJson.roomId});
+        });
       })
-      .then((responseJson) => {
-        console.log('resjson: ', responseJson);
-        this.setState({roomId: responseJson.roomId});
-        this.props.navigation.navigate('Chat', {roomId: responseJson.roomId});
+      .then(() => {
+        this.enterRoom();
       });
   };
 
@@ -143,7 +141,10 @@ class MapComponent extends Component {
     await fetch(`${URL}chat/room/${this.state.roomId}?userId=userId1`).then(
       (res) => {
         console.log(res);
-        this.props.navigation.navigate('Chat', {roomId: this.state.roomId});
+        this.props.navigation.navigate('Chat', {
+          roomId: this.state.roomId,
+          userId: 'userId1',
+        });
       },
     );
   };
@@ -194,7 +195,9 @@ class MapComponent extends Component {
                   style={{width: '100%', height: '85%'}}
                   showsMyLocationButton={true}
                   center={{...this.state.marker, zoom: 16}}
-                  onMapClick={() => this.setState({touched: false})}>
+                  onMapClick={() =>
+                    this.setState({touched: false, title: '', category: ''})
+                  }>
                   {P.map((item, idx) => (
                     <Marker
                       coordinate={{
@@ -231,12 +234,7 @@ class MapComponent extends Component {
                   </View>
                   <TouchableOpacity
                     style={styles.button}
-                    onPress={() =>
-                      // this.props.navigation.navigate('Chat', {
-                      //   roomId: 'bc0f702e-d499-428f-a09e-00597873dc80',
-                      // })
-                      this.enterRoom()
-                    }>
+                    onPress={() => this.enterRoom()}>
                     <Text>참여</Text>
                   </TouchableOpacity>
                 </View>
@@ -276,6 +274,13 @@ class MapComponent extends Component {
                 </NaverMapView>
                 {/* 검색 버튼 */}
                 <View style={styles.searchButton}>
+                  <TextInput
+                    value={this.state.title}
+                    onChangeText={(value) => this.onChangeInput(value)}
+                    placeholder="방제 검색"
+                    style={{fontSize: 20, fontWeight: 'bold', marginLeft: 5}}
+                    maxLength={12}
+                  />
                   <TouchableOpacity>
                     <Icon name="search-web" size={44} />
                   </TouchableOpacity>
@@ -325,7 +330,7 @@ class MapComponent extends Component {
                     this.setState({category: value})
                   }
                   itemStyle={{fontSize: 12}}>
-                  <Picker.Item label="선택해주세요." enabled={false} />
+                  <Picker.Item label="선택해주세요." value="" enabled={false} />
                   <Picker.Item label="운동" value="excercise" />
                   <Picker.Item label="거래" value="date" />
                   <Picker.Item label="이성" value="business" />
@@ -386,8 +391,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     top: 20,
+    width: '90%',
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
     borderRadius: 5,
     padding: 2,

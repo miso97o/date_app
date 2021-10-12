@@ -21,7 +21,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const AuthStack = createStackNavigator();
 const MainScreenTab = createBottomTabNavigator();
-const DiaryStack = createStackNavigator();
+const MapStack = createStackNavigator();
 
 const headerConfig = {
   headerTitleAlign: 'center',
@@ -61,8 +61,8 @@ const headerConfig_ = {
 
 const TabBarIcons = (focused, name) => {
   let iconName, iconSize;
-  if (name === 'Diary') {
-    iconName = 'notebook-outline';
+  if (name === 'Map') {
+    iconName = 'map-outline';
   } else if (name === 'News') {
     iconName = 'newspaper-variant-outline';
   } else if (name === 'Friends') {
@@ -78,58 +78,54 @@ const TabBarIcons = (focused, name) => {
   return <Icon name={iconName} size={iconSize} color="#fff" />;
 };
 
-const DiaryStackComponent = () => {
+const MapStackComponent = () => {
   return (
-    <DiaryStack.Navigator>
-      <DiaryStack.Screen
+    <MapStack.Navigator>
+      <MapStack.Screen
         name="Map"
         component={Map}
         options={{headerShown: false}}
       />
-      <DiaryStack.Screen name="Chat" component={Chat} />
-      <DiaryStack.Screen
-        name="Diary"
-        component={Diary}
-        options={headerConfig_}
-      />
-      <DiaryStack.Screen
+      <MapStack.Screen name="Chat" component={Chat} />
+      <MapStack.Screen name="Diary" component={Diary} options={headerConfig_} />
+      <MapStack.Screen
         name="DiaryDocu"
         component={DiaryDocu}
         options={headerConfig}
       />
-    </DiaryStack.Navigator>
+    </MapStack.Navigator>
   );
 };
 
 const NewsStackComponent = () => {
   return (
-    <DiaryStack.Navigator>
-      <DiaryStack.Screen name="News" component={News} options={headerConfig_} />
-    </DiaryStack.Navigator>
+    <MapStack.Navigator>
+      <MapStack.Screen name="News" component={News} options={headerConfig_} />
+    </MapStack.Navigator>
   );
 };
 
-const FriendsStackComponent = ({navigation, route}) => {
+const FriendsStackComponent = () => {
   // console.log('route.state ? ', route.state && route.state);
   // console.log('route.state.index ? ', route.state && route.state.index);
-  route.state && route.state.index > 0
-    ? navigation.setOptions({tabBarVisible: false})
-    : navigation.setOptions({tabBarVisible: true});
+  // route.state && route.state.index > 0
+  //   ? navigation.setOptions({tabBarVisible: false})
+  //   : navigation.setOptions({tabBarVisible: true});
   return (
-    <DiaryStack.Navigator>
-      <DiaryStack.Screen
+    <MapStack.Navigator>
+      <MapStack.Screen
         name="Friends"
         component={Friends}
         options={headerConfig_}
       />
-      <DiaryStack.Screen name="Info" component={Info} options={headerConfig} />
-      <DiaryStack.Screen name="Chat" component={Chat} />
-      <DiaryStack.Screen
+      <MapStack.Screen name="Info" component={Info} options={headerConfig} />
+      <MapStack.Screen name="Chat" component={Chat} />
+      <MapStack.Screen
         name="EnlargedImage"
         component={EnlargedImage}
         options={headerConfig}
       />
-    </DiaryStack.Navigator>
+    </MapStack.Navigator>
   );
 };
 
@@ -146,12 +142,12 @@ const AppTabComponent = () => {
         },
         keyboardHidesTabBar: true,
       }}
-      initialRouteName="Diary"
+      initialRouteName="Map"
       screenOptions={({route}) => ({
         tabBarIcon: ({focused}) => TabBarIcons(focused, route.name),
       })}>
       <MainScreenTab.Screen name="Friends" component={FriendsStackComponent} />
-      <MainScreenTab.Screen name="Diary" component={DiaryStackComponent} />
+      <MainScreenTab.Screen name="Map" component={MapStackComponent} />
       <MainScreenTab.Screen name="News" component={NewsStackComponent} />
     </MainScreenTab.Navigator>
   );

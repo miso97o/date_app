@@ -5,12 +5,10 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
 //Screens
 import SignIn from './components/auth';
-import Diary from './components/diary';
 import News from './components/news';
 import Friends from './components/friends';
 import Map from './components/map';
 
-import DiaryDocu from './components/diary/diaryDocu';
 import Info from './components/friends/info';
 import Chat from './components/friends/chat';
 import EnlargedImage from './components/friends/enlargeImage';
@@ -18,6 +16,7 @@ import Logo from './utils/logo';
 // import Loading from './components/auth/loading';
 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {getFocusedRouteNameFromRoute} from '@react-navigation/core';
 
 const AuthStack = createStackNavigator();
 const MainScreenTab = createBottomTabNavigator();
@@ -87,12 +86,6 @@ const MapStackComponent = () => {
         options={{headerShown: false}}
       />
       <MapStack.Screen name="Chat" component={Chat} />
-      <MapStack.Screen name="Diary" component={Diary} options={headerConfig_} />
-      <MapStack.Screen
-        name="DiaryDocu"
-        component={DiaryDocu}
-        options={headerConfig}
-      />
     </MapStack.Navigator>
   );
 };
@@ -106,11 +99,6 @@ const NewsStackComponent = () => {
 };
 
 const FriendsStackComponent = () => {
-  // console.log('route.state ? ', route.state && route.state);
-  // console.log('route.state.index ? ', route.state && route.state.index);
-  // route.state && route.state.index > 0
-  //   ? navigation.setOptions({tabBarVisible: false})
-  //   : navigation.setOptions({tabBarVisible: true});
   return (
     <MapStack.Navigator>
       <MapStack.Screen
@@ -147,7 +135,14 @@ const AppTabComponent = () => {
         tabBarIcon: ({focused}) => TabBarIcons(focused, route.name),
       })}>
       <MainScreenTab.Screen name="Friends" component={FriendsStackComponent} />
-      <MainScreenTab.Screen name="Map" component={MapStackComponent} />
+      <MainScreenTab.Screen
+        name="Map"
+        component={MapStackComponent}
+        options={({route}) => ({
+          tabBarVisible:
+            getFocusedRouteNameFromRoute(route) === 'Chat' ? false : true,
+        })}
+      />
       <MainScreenTab.Screen name="News" component={NewsStackComponent} />
     </MainScreenTab.Navigator>
   );

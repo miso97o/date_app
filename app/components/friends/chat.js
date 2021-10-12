@@ -42,7 +42,10 @@ class Chat extends Component {
       ws.send(
         '/pub/chat/message',
         {},
-        JSON.stringify({roomId: params.roomId, sender: params.userId}),
+        JSON.stringify({
+          roomId: params.roomId,
+          senderId: params.userId,
+        }),
       ),
         (e) => alert('error', e);
     });
@@ -58,7 +61,7 @@ class Chat extends Component {
     if (newMsg !== '') {
       this.props.sendMsg({
         roomId: this.state.roomId,
-        sender: this.state.senderName,
+        senderId: this.state.senderName,
         txtMsg: newMsg,
       });
       this.setState((prevState) => ({

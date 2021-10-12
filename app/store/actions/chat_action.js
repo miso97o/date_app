@@ -4,7 +4,7 @@ import {URL} from '../../utils/misc';
 
 import {SEND_MESSAGE, RECIEVE_MESSAGE} from '../../store/types';
 
-export var sock = new SockJS(`${URL}/start-ws`);
+export var sock = new SockJS(`${URL}start-ws`);
 export var ws = Stomp.over(sock);
 
 // 안쓰는 함수
@@ -24,16 +24,16 @@ export const connection = (roomId) => {
 };
 
 export const sendMsg =
-  ({roomId, sender, txtMsg}) =>
+  ({roomId, senderId, txtMsg}) =>
   async (dispatch) => {
     ws.send(
       '/pub/chat/message',
       {},
-      JSON.stringify({roomId: roomId, senderId: sender, message: txtMsg}),
+      JSON.stringify({roomId: roomId, senderId: senderId, message: txtMsg}),
     );
     dispatch({
       type: SEND_MESSAGE,
-      payload: {sender: true, name: 'userId1', txtMsg: txtMsg},
+      payload: {sender: true, name: senderId, txtMsg: txtMsg},
     });
   };
 

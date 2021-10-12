@@ -319,10 +319,7 @@ class MapComponent extends Component {
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.categoryButton}
-                    onPress={() => [
-                      this.setState({searchCategory: 'date'}),
-                      console.log('touched'),
-                    ]}>
+                    onPress={() => [this.setState({searchCategory: 'date'})]}>
                     <Text> 이성 </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -478,8 +475,8 @@ class MapComponent extends Component {
                   itemStyle={{fontSize: 12}}>
                   <Picker.Item label="선택해주세요." value="" enabled={false} />
                   <Picker.Item label="운동" value="exercise" />
-                  <Picker.Item label="거래" value="date" />
-                  <Picker.Item label="이성" value="business" />
+                  <Picker.Item label="거래" value="business" />
+                  <Picker.Item label="이성" value="date" />
                   <Picker.Item label="식사" value="eat" />
                 </Picker>
                 {this.state.loc.latitude !== 0 ? (

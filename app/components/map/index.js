@@ -39,9 +39,12 @@ class MapComponent extends Component {
     },
     rooms: [],
     touched: false,
+    searched: false,
     mode: 'enter', // create or enter
     title: '',
-    category: 'exercise',
+    category: '',
+    searchTitle: '',
+    searchCategory: '',
     roomId: '',
   };
 
@@ -99,33 +102,69 @@ class MapComponent extends Component {
   };
 
   createRoom = async () => {
-    await fetch(`${URL}chat/createRoom`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: this.state.title,
-        userId: 'userId2',
-        latitude: this.state.loc.latitude,
-        longitude: this.state.loc.longitude,
-        category: this.state.category,
-      }),
-    })
-      .then((response) => {
-        console.log('res: ', response);
-        response.json().then((responseJson) => {
-          this.setState({roomId: responseJson.roomId});
-        });
+    if (
+      this.state.title === '' ||
+      this.state.category === '' ||
+      this.state.loc.latitude === 0
+    ) {
+      alert('항목을 모두 입력해주세요.');
+    } else {
+      await fetch(`${URL}chat/createRoom`, {
+        method: 'POST',
+        headers: {
+          // eslint-disable-next-line prettier/prettier
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: this.state.title,
+          userId: 'userId2',
+          latitude: this.state.loc.latitude,
+          longitude: this.state.loc.longitude,
+          category: this.state.category,
+        }),
       })
-      .then(() => {
-        this.enterRoom();
-      });
+        .then((response) => {
+          console.log('res: ', response);
+          response.json().then((responseJson) => {
+            this.setState({roomId: responseJson.roomId});
+          });
+        })
+        .then(() => {
+          this.enterRoom();
+        });
+    }
   };
 
   search = () => {
-    console.log('search button touched!!');
-    this.setState({touched: false});
+    var filterd = this.state.rooms;
+    // 제목이 있으면
+    if (this.state.searchTitle !== '') {
+      filterd = filterd.filter((sub) =>
+        sub.name.includes(this.state.searchTitle),
+      );
+    }
+    if (this.state.searchCategory !== '') {
+      filterd = filterd.filter(
+        (sub) => sub.category === this.state.searchCategory,
+      );
+    }
+    if (filterd.length === 0) {
+      alert('대상이 없습니다.');
+      this.setState({
+        searcheCategory: '',
+        searchTitle: '',
+        touched: false,
+      });
+    } else {
+      this.setState({
+        rooms: filterd,
+        searched: true,
+        searcheCategory: '',
+        searchTitle: '',
+        touched: false,
+      });
+    }
   };
 
   getRooms = async () => {
@@ -149,8 +188,25 @@ class MapComponent extends Component {
     );
   };
 
-  onChangeInput = (value) => {
-    this.setState({title: value});
+  getCategory = (key) => {
+    switch (key) {
+      case 'exercise':
+        return '운동';
+      case 'business':
+        return '거래';
+      case 'date':
+        return '이성';
+      case 'eat':
+        return '식사';
+      default:
+        return '';
+    }
+  };
+
+  onChangeInput = (key, value) => {
+    key === 'title'
+      ? this.setState({title: value})
+      : this.setState({searchTitle: value});
   };
 
   componentDidMount() {
@@ -221,15 +277,66 @@ class MapComponent extends Component {
                     />
                   ))}
                 </NaverMapView>
-                <View style={styles.searchButton}>
-                  <TouchableOpacity>
-                    <Icon name="search-web" size={44} />
+                <View style={styles.search}>
+                  <TextInput
+                    value={this.state.searchTitle}
+                    onChangeText={(value) =>
+                      this.onChangeInput('search', value)
+                    }
+                    placeholder="방제 검색 "
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 'bold',
+                      marginLeft: 5,
+                      width: 300,
+                    }}
+                    maxLength={18}
+                  />
+                  <TouchableOpacity onPress={() => this.search()}>
+                    <Icon name="search-web" size={42} />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.categoryView}>
+                  {this.state.searched ? (
+                    <TouchableOpacity
+                      style={styles.categoryButton}
+                      onPress={() => {
+                        this.getRooms();
+                        this.setState({searched: false});
+                      }}>
+                      <Icon name="keyboard-return" size={18} />
+                    </TouchableOpacity>
+                  ) : null}
+                  <TouchableOpacity
+                    style={styles.categoryButton}
+                    onPress={() => this.setState({searchCategory: 'exercise'})}>
+                    <Text> 운동 </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.categoryButton}
+                    onPress={() => this.setState({searchCategory: 'business'})}>
+                    <Text> 거래 </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.categoryButton}
+                    onPress={() => [
+                      this.setState({searchCategory: 'date'}),
+                      console.log('touched'),
+                    ]}>
+                    <Text> 이성 </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.categoryButton}
+                    onPress={() => this.setState({searchCategory: 'eat'})}>
+                    <Text> 식사 </Text>
                   </TouchableOpacity>
                 </View>
                 <View style={styles.container}>
                   <View style={{width: '80%'}}>
                     <Text style={styles.titleText}>{this.state.title}</Text>
-                    <Text style={styles.defText}>{this.state.category}</Text>
+                    <Text style={styles.defText}>
+                      {this.getCategory(this.state.category)}
+                    </Text>
                     <Text style={styles.defText}>{this.state.address}</Text>
                   </View>
                   <TouchableOpacity
@@ -273,16 +380,55 @@ class MapComponent extends Component {
                     : null}
                 </NaverMapView>
                 {/* 검색 버튼 */}
-                <View style={styles.searchButton}>
+                <View style={styles.search}>
                   <TextInput
-                    value={this.state.title}
-                    onChangeText={(value) => this.onChangeInput(value)}
-                    placeholder="방제 검색"
-                    style={{fontSize: 20, fontWeight: 'bold', marginLeft: 5}}
-                    maxLength={12}
+                    value={this.state.searchTitle}
+                    onChangeText={(value) =>
+                      this.onChangeInput('search', value)
+                    }
+                    placeholder="방제 검색 "
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 'bold',
+                      marginLeft: 5,
+                      width: 300,
+                    }}
+                    maxLength={18}
                   />
-                  <TouchableOpacity>
-                    <Icon name="search-web" size={44} />
+                  <TouchableOpacity onPress={() => this.search()}>
+                    <Icon name="search-web" size={42} />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.categoryView}>
+                  {this.state.searched ? (
+                    <TouchableOpacity
+                      style={styles.categoryButton}
+                      onPress={() => {
+                        this.getRooms();
+                        this.setState({searched: false});
+                      }}>
+                      <Icon name="keyboard-return" size={18} />
+                    </TouchableOpacity>
+                  ) : null}
+                  <TouchableOpacity
+                    style={styles.categoryButton}
+                    onPress={() => this.setState({searchCategory: 'exercise'})}>
+                    <Text> 운동 </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.categoryButton}
+                    onPress={() => this.setState({searchCategory: 'business'})}>
+                    <Text> 거래 </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.categoryButton}
+                    onPress={() => this.setState({searchCategory: 'date'})}>
+                    <Text> 이성 </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.categoryButton}
+                    onPress={() => this.setState({searchCategory: 'eat'})}>
+                    <Text> 식사 </Text>
                   </TouchableOpacity>
                 </View>
                 <View
@@ -318,7 +464,7 @@ class MapComponent extends Component {
               <View style={{width: '65%'}}>
                 <TextInput
                   value={this.state.title}
-                  onChangeText={(value) => this.onChangeInput(value)}
+                  onChangeText={(value) => this.onChangeInput('title', value)}
                   style={[styles.titleText, {backgroundColor: 'white'}]}
                   autoCapitalize={'none'}
                   placeholder="제목을 입력하세요. "
@@ -331,7 +477,7 @@ class MapComponent extends Component {
                   }
                   itemStyle={{fontSize: 12}}>
                   <Picker.Item label="선택해주세요." value="" enabled={false} />
-                  <Picker.Item label="운동" value="excercise" />
+                  <Picker.Item label="운동" value="exercise" />
                   <Picker.Item label="거래" value="date" />
                   <Picker.Item label="이성" value="business" />
                   <Picker.Item label="식사" value="eat" />
@@ -386,7 +532,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginRight: 15,
   },
-  searchButton: {
+  search: {
     backgroundColor: 'white',
     position: 'absolute',
     right: 20,
@@ -398,6 +544,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     padding: 2,
+  },
+  categoryView: {
+    position: 'absolute',
+    left: 20,
+    top: 70,
+    width: '90%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 3,
+  },
+  categoryButton: {
+    padding: 2,
+    margin: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'green',
+    backgroundColor: 'white',
+    width: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

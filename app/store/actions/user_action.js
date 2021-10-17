@@ -1,23 +1,21 @@
 import {SIGN_IN, SIGN_UP, AUTO_SIGN_IN} from '../types';
 
 import axios from 'axios';
-import {SIGNUP, SIGNIN, REFRESH, auth} from '../../utils/misc';
+import {auth, URL} from '../../utils/misc';
 
 // firebase에 토큰이 존재하면 자동로그인 하는 요청을 보내는 request와 action type을 반환하는 함수
-export const autoSignIn = (refToken) => {
+export const autoSignIn = () => {
   const request = axios({
-    method: 'POST',
-    url: REFRESH,
-    data: 'grant_type=refresh_token&refresh_token=' + refToken,
-    header: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
+    method: 'GET',
+    url: `${URL}user/hi`,
   })
     .then((response) => {
+      console.log(response);
       return response.data;
     })
     .catch((error) => {
       alert('에러 발생');
+      console.log(error);
       return false;
     });
 
@@ -27,37 +25,27 @@ export const autoSignIn = (refToken) => {
   };
 };
 
-const firebaseLogin = async (email, password) => {
-  try {
-    let user = await auth.signInWithEmailAndPassword(email, password);
-    console.log('User: ', user);
-  } catch (err) {
-    console.warn('Error: ', err);
-  }
-};
-
 // firebase에 SIGNIN 요청과 action type을 반환하는 함수
 export function signIn(data) {
-  firebaseLogin(data.email, data.password);
-
+  // console.log(data);
   const request = axios({
     method: 'POST',
-    url: SIGNIN,
+    url: `${URL}user/login`,
     data: {
-      email: data.email,
-      password: data.password,
-      returnSecureToken: true,
+      userId: data.email,
+      userPwd: data.password,
     },
     header: {
       'Content-Type': 'application/json',
     },
   })
     .then((response) => {
-      // console.log(response.data);
+      console.log(response);
       return response.data;
     })
     .catch((error) => {
       alert('에러 발생');
+      console.log(error);
       return false;
     });
 
@@ -71,22 +59,23 @@ export function signIn(data) {
 export function signUp(data) {
   const request = axios({
     method: 'POST',
-    url: SIGNUP,
+    url: `${URL}user/signup`,
     data: {
-      email: data.email,
-      password: data.password,
-      returnSecureToken: true,
+      userName: data.name,
+      userId: data.email,
+      userPwd: data.password,
     },
     header: {
       'Content-Type': 'application/json',
     },
   })
     .then((response) => {
-      // console.log(response.data);
+      console.log(response);
       return response.data;
     })
     .catch((error) => {
       alert('에러 발생');
+      console.log(error);
       return false;
     });
 

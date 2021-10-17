@@ -24,6 +24,14 @@ class AuthForm extends Component {
         },
         valid: false,
       },
+      name: {
+        value: '',
+        type: 'textinput',
+        rules: {
+          isRequired: true,
+        },
+        valid: false,
+      },
       password: {
         value: '',
         type: 'textinput',
@@ -74,6 +82,17 @@ class AuthForm extends Component {
       />
     ) : null;
 
+  enterName = () =>
+    this.state.type !== '로그인' ? (
+      <Input
+        value={this.state.form.name.value}
+        type={this.state.form.name.type}
+        placeholder="이름 "
+        placeholderTextColor="#fff"
+        onChangeText={(value) => this.updateInput('name', value)}
+      />
+    ) : null;
+
   // 형식이 틀리는 등 오류가 생기면 오류를 화면에 나타냄
   formHasErrors = () =>
     this.state.hasErrors ? (
@@ -102,13 +121,13 @@ class AuthForm extends Component {
 
     for (let key in formCopy) {
       if (this.state.type === '로그인') {
-        // 로그인 / 패스워드를 다룸
-        if (key !== 'confirmPassword') {
+        // 이메일 / 패스워드가 valid한지 확인
+        if (key !== 'confirmPassword' && key !== 'name') {
           isFormValid = isFormValid && formCopy[key].valid;
           submittedForm[key] = formCopy[key].value;
         }
       } else {
-        // 로그인 / 패스워드 / 확인패스워드를 다룸
+        // 이메일 / 이름 / 패스워드 / 확인패스워드가 valid한지 확인
         isFormValid = isFormValid && formCopy[key].valid;
         submittedForm[key] = formCopy[key].value;
       }
@@ -117,15 +136,18 @@ class AuthForm extends Component {
     if (isFormValid) {
       // 입력한 형식이 맞는지
       if (this.state.type === '로그인') {
-        this.props.signIn(submittedForm).then(() => {
+        this.props.signIn(submittedForm);
+        setTimeout(() => {
           this.manageAccess();
-        });
+        }, 500);
       } else {
-        this.props.signUp(submittedForm).then(() => {
+        this.props.signUp(submittedForm);
+        setTimeout(() => {
           this.manageAccess();
-        });
+        }, 500);
       }
     } else {
+      console.log(submittedForm);
       this.setState({
         hasErrors: true,
       });
@@ -133,13 +155,16 @@ class AuthForm extends Component {
   };
 
   manageAccess = () => {
+    // console.log('ManageAccess');
     if (!this.props.User.auth.userId) {
       this.setState({hasErrors: true});
     } else {
-      setTokens(this.props.User.auth, () => {
-        this.setState({hasErrors: false});
-        this.props.navigation.push('AppTabComponent');
-      });
+      this.setState({hasErrors: false});
+      this.props.goWithoutLogin();
+      // setTokens(this.props.User.auth, () => {
+      //   this.setState({hasErrors: false});
+      //   this.props.goWithoutLogin();
+      // });
     }
   };
 
@@ -155,6 +180,7 @@ class AuthForm extends Component {
           placeholderTextColor="#fff"
           onChangeText={(value) => this.updateInput('email', value)}
         />
+        {this.enterName()}
         <Input
           value={this.state.form.password.value}
           type={this.state.form.password.type}
@@ -184,13 +210,13 @@ class AuthForm extends Component {
             />
           </View>
 
-          <View style={styles.button}>
+          {/* <View style={styles.button}>
             <Button
               title={'비회원 로그인'}
               color="#48567f"
               onPress={() => this.props.goWithoutLogin()}
             />
-          </View>
+          </View> */}
         </View>
       </View>
     );

@@ -2,6 +2,7 @@ import React from 'react';
 
 import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {createDrawerNavigator} from '@react-navigation/drawer';
 
 //Screens
 import SignIn from './components/auth';
@@ -10,17 +11,20 @@ import Friends from './components/friends';
 import Map from './components/map';
 
 import Info from './components/friends/info';
-import Chat from './components/friends/chat';
+import Chat from './components/chat/chat';
 import EnlargedImage from './components/friends/enlargeImage';
+import MapDrawer from './components/map/mapDrawer';
+import ChatDrawer from './components/chat/chatDrawer';
 import Logo from './utils/logo';
 // import Loading from './components/auth/loading';
 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {getFocusedRouteNameFromRoute} from '@react-navigation/core';
 
 const AuthStack = createStackNavigator();
 const MainScreenTab = createBottomTabNavigator();
-const MapStack = createStackNavigator();
+const Stack = createStackNavigator();
+const MainStack = createStackNavigator();
+const Drawer = createDrawerNavigator();
 
 const headerConfig = {
   headerTitleAlign: 'center',
@@ -48,16 +52,6 @@ const headerConfig_ = {
   headerLeft: null,
 };
 
-/*
-    Stack Navigator
-        - Stack Screen A
-
-    Stack Navigator
-        - Tab Navigator
-            - Tab Screen B
-            - Tab Screen C
-*/
-
 const TabBarIcons = (focused, name) => {
   let iconName, iconSize;
   if (name === 'Map') {
@@ -77,48 +71,58 @@ const TabBarIcons = (focused, name) => {
   return <Icon name={iconName} size={iconSize} color="#fff" />;
 };
 
-const MapStackComponent = () => {
+const MapDrawerComponent = () => {
   return (
-    <MapStack.Navigator>
-      <MapStack.Screen
-        name="Map"
-        component={Map}
-        options={{headerShown: false}}
-      />
-      <MapStack.Screen name="Chat" component={Chat} />
-    </MapStack.Navigator>
+    <Drawer.Navigator
+      drawerType="front"
+      drawerContent={(props) => <MapDrawer {...props} />}>
+      <Drawer.Screen name="Home" component={Map} />
+      <Drawer.Screen name="Info" component={Info} />
+    </Drawer.Navigator>
+  );
+};
+
+const ChatDrawerComponent = () => {
+  return (
+    <Drawer.Navigator
+      drawerType="front"
+      drawerPosition="right"
+      drawerContent={(props) => <ChatDrawer {...props} />}>
+      <Drawer.Screen name="Chat" component={Chat} />
+      <Drawer.Screen name="Info" component={Info} />
+    </Drawer.Navigator>
   );
 };
 
 const NewsStackComponent = () => {
   return (
-    <MapStack.Navigator>
-      <MapStack.Screen name="News" component={News} options={headerConfig_} />
-    </MapStack.Navigator>
+    <Stack.Navigator>
+      <Stack.Screen name="News" component={News} options={headerConfig_} />
+    </Stack.Navigator>
   );
 };
 
 const FriendsStackComponent = () => {
   return (
-    <MapStack.Navigator>
-      <MapStack.Screen
+    <Stack.Navigator>
+      <Stack.Screen
         name="Friends"
         component={Friends}
         options={headerConfig_}
       />
-      <MapStack.Screen name="Info" component={Info} options={headerConfig} />
-      <MapStack.Screen name="Chat" component={Chat} />
-      <MapStack.Screen
+      <Stack.Screen name="Info" component={Info} options={headerConfig} />
+      <Stack.Screen name="Chat" component={Chat} />
+      <Stack.Screen
         name="EnlargedImage"
         component={EnlargedImage}
         options={headerConfig}
       />
-    </MapStack.Navigator>
+    </Stack.Navigator>
   );
 };
 
 // 메인이 되는 탭 네비게이터
-const AppTabComponent = () => {
+const MainTabComponent = () => {
   return (
     <MainScreenTab.Navigator
       tabBarOptions={{
@@ -135,16 +139,22 @@ const AppTabComponent = () => {
         tabBarIcon: ({focused}) => TabBarIcons(focused, route.name),
       })}>
       <MainScreenTab.Screen name="Friends" component={FriendsStackComponent} />
-      <MainScreenTab.Screen
-        name="Map"
-        component={MapStackComponent}
-        options={({route}) => ({
-          tabBarVisible:
-            getFocusedRouteNameFromRoute(route) === 'Chat' ? false : true,
-        })}
-      />
+      <MainScreenTab.Screen name="Map" component={MapDrawerComponent} />
       <MainScreenTab.Screen name="News" component={NewsStackComponent} />
     </MainScreenTab.Navigator>
+  );
+};
+
+const AppStackComponent = () => {
+  return (
+    <MainStack.Navigator>
+      <MainStack.Screen
+        name="Main"
+        component={MainTabComponent}
+        options={{headerShown: false}}
+      />
+      <MainStack.Screen name="Chat" component={ChatDrawerComponent} />
+    </MainStack.Navigator>
   );
 };
 
@@ -159,8 +169,8 @@ export const RootNavigator = () => {
         options={() => ({gestureEnabled: false})}
       />
       <AuthStack.Screen
-        name="AppTabComponent"
-        component={AppTabComponent}
+        name="AppStackComponent"
+        component={AppStackComponent}
         options={() => ({gestureEnabled: false})}
       />
     </AuthStack.Navigator>

@@ -13,7 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import {URL} from '../../utils/misc';
-import {sendMsg, recieveMsg} from '../../store/actions/chat_action';
+import {sendMsg, recieveMsg, connection} from '../../store/actions/chat_action';
 
 import {connect} from 'react-redux';
 
@@ -21,21 +21,22 @@ class Chat extends Component {
   constructor(props) {
     super(props);
     const params = props.route.params;
-    console.log(params);
+    console.log('params', params);
+    console.log('store', props.Chat);
     this.state = {
-      roomId: params.roomId,
-      senderName: params.userId,
+      roomId: props.Chat.roomId,
+      senderName: props.Chat.senderId,
       newMessage: {
         sender: true,
-        name: params.userId,
+        name: props.Chat.senderId,
         txtMsg: '',
       },
     };
-    // connection(params.roomId);
+    // connection(props.Chat.roomId, props.Chat.senderId);
     var sock = new SockJS(`${URL}start-ws`);
     var ws = Stomp.over(sock);
     ws.connect({}, () => {
-      ws.subscribe('/sub/chat/room/' + params.roomId, (msg) => {
+      ws.subscribe('/sub/chat/room/' + this.state.roomId, (msg) => {
         var recv = JSON.parse(msg.body);
         this.props.recieveMsg(recv);
       });
@@ -43,8 +44,8 @@ class Chat extends Component {
         '/pub/chat/message',
         {},
         JSON.stringify({
-          roomId: params.roomId,
-          senderId: params.userId,
+          roomId: this.state.roomId,
+          senderId: this.state.senderName,
         }),
       ),
         (e) => alert('error', e);
@@ -152,7 +153,7 @@ const styles = StyleSheet.create({
 });
 
 function mapStateToProps(state) {
-  return {Chat: state.Chat};
+  return {Chat: state.Chat, User: state.User};
 }
 
 export default connect(mapStateToProps, {sendMsg, recieveMsg})(Chat);

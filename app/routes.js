@@ -3,6 +3,7 @@ import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createDrawerNavigator} from '@react-navigation/drawer';
+import {DrawerActions} from '@react-navigation/routers';
 
 //Screens
 import SignIn from './components/auth';
@@ -19,6 +20,7 @@ import Logo from './utils/logo';
 // import Loading from './components/auth/loading';
 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {TouchableOpacity} from 'react-native';
 
 const AuthStack = createStackNavigator();
 const MainScreenTab = createBottomTabNavigator();
@@ -153,7 +155,20 @@ const AppStackComponent = () => {
         component={MainTabComponent}
         options={{headerShown: false}}
       />
-      <MainStack.Screen name="Chat" component={ChatDrawerComponent} />
+      <MainStack.Screen
+        name="Chat"
+        component={ChatDrawerComponent}
+        options={({navigation}) => ({
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+              style={{marginRight: 10}}>
+              <Icon name="menu" size={36} />
+            </TouchableOpacity>
+          ),
+          headerTitle: '',
+        })}
+      />
     </MainStack.Navigator>
   );
 };

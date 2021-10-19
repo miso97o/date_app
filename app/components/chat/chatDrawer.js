@@ -1,13 +1,40 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {Component} from 'react';
-import {StyleSheet, View, Text, ScrollView, Image} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Dimensions,
+} from 'react-native';
 
 import {CommonActions} from '@react-navigation/routers';
 import {connect} from 'react-redux';
 
+const screenHeight = Dimensions.get('window').height;
+const screenWidth = Dimensions.get('window').width;
+
 class ChatDrawer extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      users: [
+        {
+          userId: props.User.auth.userId,
+          userName: props.User.auth.userName,
+        },
+        {
+          userId: 'asd@asd.com',
+          userName: 'doyoung',
+        },
+        {
+          userId: 'asd@efg.com',
+          userName: 'chaerim',
+        },
+      ],
+    };
   }
 
   navigationToScreen = (route) => () => {
@@ -22,31 +49,48 @@ class ChatDrawer extends Component {
   render() {
     return (
       <View style={{flex: 1}}>
-        <ScrollView>
-          <View style={styles.userContainer}>
-            <Image
-              source={require('../../assests/images/very_good.png')}
-              style={{width: 50, height: 50, marginRight: 20}}
-            />
-            <Text style={{fontSize: 25, fontWeight: 'bold'}}>
-              {this.props.User.auth.userName}님
-            </Text>
+        <ScrollView style={{backgroundColor: 'skyblue'}}>
+          <View style={styles.menuContainer}>
+            <Text>Menu</Text>
           </View>
-          <View>
-            <Text>User 목록</Text>
+          <View style={styles.userContainer}>
+            <Text style={{fontSize: 24, fontWeight: 'bold', padding: 5}}>
+              대화상대
+            </Text>
+            {this.state.users.map((item, idx) => (
+              <TouchableOpacity key={idx}>
+                <Text style={styles.userText}> {item.userName}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </ScrollView>
+        <TouchableOpacity style={{position: 'absolute', left: 15, bottom: 10}}>
+          <Image
+            source={require('../../assests/images/logout.png')}
+            resizeMode="contain"
+            style={{width: 30, height: 30}}
+          />
+        </TouchableOpacity>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  userContainer: {
-    flexDirection: 'row',
-    backgroundColor: 'rgb(218,252,252)',
+  menuContainer: {
     padding: 15,
-    alignItems: 'center',
+    height: 100,
+    justifyContent: 'center',
+    borderBottomWidth: 0.7,
+    margin: 3,
+  },
+  userContainer: {
+    marginLeft: 5,
+    padding: 10,
+  },
+  userText: {
+    fontSize: 20,
+    fontWeight: 'bold',
   },
 });
 

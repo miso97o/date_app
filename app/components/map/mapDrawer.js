@@ -1,6 +1,13 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {Component} from 'react';
-import {StyleSheet, View, Text, ScrollView, Image} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 
 import {CommonActions} from '@react-navigation/routers';
 import {connect} from 'react-redux';
@@ -28,12 +35,15 @@ class MapDrawer extends Component {
               source={require('../../assests/images/very_good.png')}
               style={{width: 50, height: 50, marginRight: 20}}
             />
-            <Text style={{fontSize: 25, fontWeight: 'bold'}}>
+            <Text style={{fontSize: 30, fontWeight: 'bold'}}>
               {this.props.User.auth.userName}님
             </Text>
           </View>
-          <View>
-            <Text>Section 1</Text>
+          <View style={styles.menuContainer}>
+            <Text style={styles.menuText}>Menu</Text>
+            <TouchableOpacity>
+              <Text style={styles.menuText}>My Info</Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </View>
@@ -47,6 +57,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(218,252,252)',
     padding: 15,
     alignItems: 'center',
+  },
+  menuContainer: {
+    marginLeft: 5,
+    padding: 10,
+  },
+  menuText: {
+    fontSize: 24,
+    fontWeight: 'bold',
   },
 });
 

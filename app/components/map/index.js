@@ -16,6 +16,9 @@ import Geolocation from 'react-native-geolocation-service';
 
 import {CLIENT_ID, CLIENT_SECERET, URL} from '../../utils/misc';
 
+import {connect} from 'react-redux';
+import {getRoomId} from '../../store/actions/chat_action';
+
 async function requestPermission() {
   return await PermissionsAndroid.request(
     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
@@ -91,7 +94,7 @@ class MapComponent extends Component {
   };
 
   touchedMarker = (P) => {
-    return <Marker coordinate={P} width={80} height={90} />;
+    return <Marker coordinate={P} width={70} height={75} />;
   };
 
   modeChange = () => {
@@ -118,7 +121,7 @@ class MapComponent extends Component {
         },
         body: JSON.stringify({
           name: this.state.title,
-          userId: 'userId2',
+          userId: this.props.User.auth.userId,
           latitude: this.state.loc.latitude,
           longitude: this.state.loc.longitude,
           category: this.state.category,
@@ -128,6 +131,11 @@ class MapComponent extends Component {
           console.log('res: ', response);
           response.json().then((responseJson) => {
             this.setState({roomId: responseJson.roomId});
+            this.props.getRoomId(
+              this.state.roomId,
+              this.props.User.auth.userId,
+              this.props.User.auth.userName,
+            );
           });
         })
         .then(() => {
@@ -177,15 +185,20 @@ class MapComponent extends Component {
   };
 
   enterRoom = async () => {
-    await fetch(`${URL}chat/room/${this.state.roomId}?userId=userId1`).then(
-      (res) => {
-        console.log(res);
-        this.props.navigation.navigate('Chat', {
-          roomId: this.state.roomId,
-          userId: 'userId1',
-        });
-      },
-    );
+    await fetch(
+      `${URL}chat/room/${this.state.roomId}?userId=${this.props.User.auth.userId}`,
+    ).then((res) => {
+      console.log(res);
+      this.props.getRoomId(
+        this.state.roomId,
+        this.props.User.auth.userId,
+        this.props.User.auth.userName,
+      );
+      this.props.navigation.navigate('Chat', {
+        roomId: this.state.roomId,
+        userId: this.props.User.auth.userId,
+      });
+    });
   };
 
   getCategory = (key) => {
@@ -276,19 +289,27 @@ class MapComponent extends Component {
                       ]}
                     />
                   ))}
+                  {this.state.touched
+                    ? this.touchedMarker(this.state.marker)
+                    : null}
                 </NaverMapView>
                 <View style={styles.search}>
+                  <TouchableOpacity
+                    style={{marginLeft: 5}}
+                    onPress={() => this.props.navigation.openDrawer()}>
+                    <Icon name="menu" size={36} />
+                  </TouchableOpacity>
                   <TextInput
                     value={this.state.searchTitle}
                     onChangeText={(value) =>
                       this.onChangeInput('search', value)
                     }
-                    placeholder="방제 검색 "
+                    placeholder=" 방제 검색 "
                     style={{
                       fontSize: 20,
                       fontWeight: 'bold',
-                      marginLeft: 5,
-                      width: 300,
+                      marginLeft: 3,
+                      width: 275,
                     }}
                     maxLength={18}
                   />
@@ -372,23 +393,25 @@ class MapComponent extends Component {
                       ]}
                     />
                   ))}
-                  {this.state.touched
-                    ? this.touchedMarker(this.state.marker)
-                    : null}
                 </NaverMapView>
                 {/* 검색 버튼 */}
                 <View style={styles.search}>
+                  <TouchableOpacity
+                    style={{marginLeft: 5}}
+                    onPress={() => this.props.navigation.openDrawer()}>
+                    <Icon name="menu" size={36} />
+                  </TouchableOpacity>
                   <TextInput
                     value={this.state.searchTitle}
                     onChangeText={(value) =>
                       this.onChangeInput('search', value)
                     }
-                    placeholder="방제 검색 "
+                    placeholder=" 방제 검색 "
                     style={{
                       fontSize: 20,
                       fontWeight: 'bold',
-                      marginLeft: 5,
-                      width: 300,
+                      marginLeft: 3,
+                      width: 275,
                     }}
                     maxLength={18}
                   />
@@ -564,4 +587,12 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MapComponent;
+function mapStateToProps(state) {
+  return {
+    // 리액트 네이티브의 Props의 User에 Redux Store가 가진 state안의 User를 할당함
+    User: state.User,
+    Chat: state.Chat,
+  };
+}
+
+export default connect(mapStateToProps, {getRoomId})(MapComponent);

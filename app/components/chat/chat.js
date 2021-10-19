@@ -13,7 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import {URL} from '../../utils/misc';
-import {sendMsg, recieveMsg, connection} from '../../store/actions/chat_action';
+import {sendMsg, recieveMsg} from '../../store/actions/chat_action';
 
 import {connect} from 'react-redux';
 
@@ -25,12 +25,9 @@ class Chat extends Component {
     console.log('store', props.Chat);
     this.state = {
       roomId: props.Chat.roomId,
-      senderName: props.Chat.senderId,
-      newMessage: {
-        sender: true,
-        name: props.Chat.senderId,
-        txtMsg: '',
-      },
+      senderId: props.Chat.senderId,
+      senderName: props.Chat.senderName,
+      newMessage: '',
     };
     // connection(props.Chat.roomId, props.Chat.senderId);
     var sock = new SockJS(`${URL}start-ws`);
@@ -45,7 +42,8 @@ class Chat extends Component {
         {},
         JSON.stringify({
           roomId: this.state.roomId,
-          senderId: this.state.senderName,
+          senderId: this.state.senderId,
+          senderName: this.state.senderName,
         }),
       ),
         (e) => alert('error', e);
@@ -54,7 +52,7 @@ class Chat extends Component {
 
   onChangeInput = (value) => {
     this.setState((prevState) => ({
-      newMessage: {...prevState.newMessage, txtMsg: value},
+      newMessage: value,
     }));
   };
 
@@ -64,9 +62,10 @@ class Chat extends Component {
         roomId: this.state.roomId,
         senderId: this.state.senderName,
         txtMsg: newMsg,
+        senderName: this.state.senderName,
       });
       this.setState((prevState) => ({
-        newMessage: {txtMsg: ''},
+        newMessage: '',
       }));
     }
     console.log(this.props.Chat);
@@ -116,7 +115,7 @@ class Chat extends Component {
             alignItems: 'center',
           }}>
           <TextInput
-            value={this.state.newMessage.txtMsg}
+            value={this.state.newMessage}
             onChangeText={(value) => this.onChangeInput(value)}
             multiline={true}
             autoCapitalize="none"
@@ -127,7 +126,7 @@ class Chat extends Component {
           />
           <TouchableOpacity
             style={styles.button}
-            onPress={() => this.pushMessage(this.state.newMessage.txtMsg)}>
+            onPress={() => this.pushMessage(this.state.newMessage)}>
             <Icon name="send-circle-outline" size={28} />
           </TouchableOpacity>
         </View>

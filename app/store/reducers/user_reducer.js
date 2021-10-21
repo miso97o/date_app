@@ -16,6 +16,10 @@ export default function (state = {}, action) {
     case SIGN_UP:
       return {
         ...state,
+        auth: {
+          userId: action.payload.userId || false,
+          userName: action.payload.userName || false,
+        },
       };
     case AUTO_SIGN_IN:
       return {

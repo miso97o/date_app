@@ -143,7 +143,10 @@ class AuthForm extends Component {
       } else {
         this.props.signUp(submittedForm);
         setTimeout(() => {
-          this.manageAccess();
+          if (this.props.User.auth.userId) {
+            alert('회원가입 성공');
+            this.changeForm();
+          }
         }, 500);
       }
     } else {
@@ -161,10 +164,6 @@ class AuthForm extends Component {
     } else {
       this.setState({hasErrors: false});
       this.props.goWithoutLogin();
-      // setTokens(this.props.User.auth, () => {
-      //   this.setState({hasErrors: false});
-      //   this.props.goWithoutLogin();
-      // });
     }
   };
 
@@ -209,14 +208,6 @@ class AuthForm extends Component {
               onPress={this.changeForm}
             />
           </View>
-
-          {/* <View style={styles.button}>
-            <Button
-              title={'비회원 로그인'}
-              color="#48567f"
-              onPress={() => this.props.goWithoutLogin()}
-            />
-          </View> */}
         </View>
       </View>
     );

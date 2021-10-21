@@ -81,6 +81,6 @@ export function signUp(data) {
 
   return {
     type: SIGN_UP,
-    payload: request,
+    payload: {userId: data.email, userName: data.name},
   };
 }

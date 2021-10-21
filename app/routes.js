@@ -73,6 +73,22 @@ const TabBarIcons = (focused, name) => {
   return <Icon name={iconName} size={iconSize} color="#fff" />;
 };
 
+// App
+// - Stack Auth
+
+// - Stack Component
+// 	- Tab Component
+// 		- My Profile Screen
+// 		- Map Drawer
+// 			- Home map
+// 			- Profile setting
+// 			- etc..
+// 		- News Screen
+// 	- Chat Drawer
+// 		- User Profile Screen
+// 		- Leave Room button
+//    - etc...
+
 const MapDrawerComponent = () => {
   return (
     <Drawer.Navigator

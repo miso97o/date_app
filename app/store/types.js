@@ -5,3 +5,4 @@ export const GET_DIARIES = 'get_diaries';
 export const RECIEVE_MESSAGE = 'recieve_message';
 export const SEND_MESSAGE = 'send_message';
 export const GET_ROOMID = 'get_roomid';
+export const LEAVE_ROOM = 'leave_room';

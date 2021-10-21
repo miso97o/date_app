@@ -1,4 +1,4 @@
-import {RECIEVE_MESSAGE, SEND_MESSAGE, GET_ROOMID} from '../types';
+import {RECIEVE_MESSAGE, SEND_MESSAGE, GET_ROOMID, LEAVE_ROOM} from '../types';
 
 const initialState = {
   messages: [],
@@ -15,6 +15,17 @@ export default function (state = initialState, {type, payload}) {
         senderName: payload.userName,
       };
     case RECIEVE_MESSAGE:
+      if (payload.type === 'SYSTEM') {
+        var message = {
+          sender: payload.senderId === state.senderId,
+          senderId: 'SYSTEM',
+          senderName: payload.senderName,
+          txtMsg: payload.message,
+        };
+        if (state.messages.length === 0) {
+          return {...state, messages: [...state.messages, message]};
+        }
+      }
       var message = {
         sender: payload.senderId === state.senderId,
         senderId: payload.senderId,
@@ -22,7 +33,7 @@ export default function (state = initialState, {type, payload}) {
         txtMsg: payload.message,
       };
       if (message.senderId === state.senderId) {
-        return {...state};
+        return state;
       } else {
         return {
           ...state,
@@ -34,6 +45,8 @@ export default function (state = initialState, {type, payload}) {
         ...state,
         messages: [...state.messages, payload],
       };
+    case LEAVE_ROOM:
+      return initialState;
     default:
       return state;
   }

@@ -20,8 +20,6 @@ import {connect} from 'react-redux';
 class Chat extends Component {
   constructor(props) {
     super(props);
-    const params = props.route.params;
-    console.log('params', params);
     console.log('store', props.Chat);
     this.state = {
       roomId: props.Chat.roomId,
@@ -41,9 +39,11 @@ class Chat extends Component {
         '/pub/chat/message',
         {},
         JSON.stringify({
+          type: 'SYSTEM',
           roomId: this.state.roomId,
           senderId: this.state.senderId,
           senderName: this.state.senderName,
+          message: `${this.state.senderName}님이 입장하였습니다.`,
         }),
       ),
         (e) => alert('error', e);
@@ -60,7 +60,7 @@ class Chat extends Component {
     if (newMsg !== '') {
       this.props.sendMsg({
         roomId: this.state.roomId,
-        senderId: this.state.senderName,
+        senderId: this.state.senderId,
         txtMsg: newMsg,
         senderName: this.state.senderName,
       });
@@ -86,9 +86,25 @@ class Chat extends Component {
           }}
           onLayout={() => this.scrollView.scrollToEnd({animated: true})}>
           {this.props.Chat.messages.map((item, idx) => {
+            if (item.senderId === 'SYSTEM') {
+              return (
+                <View
+                  style={{
+                    alignItems: 'center',
+                    margin: 5,
+                  }}
+                  key={idx}>
+                  <Text
+                    style={{borderWidth: 0.7, borderRadius: 10, padding: 5}}>
+                    {item.txtMsg}
+                  </Text>
+                </View>
+              );
+            }
             return item.sender ? (
               <View
-                style={{alignItems: 'flex-end', margin: 5, marginRight: 10}}>
+                style={{alignItems: 'flex-end', margin: 5, marginRight: 10}}
+                key={idx}>
                 <Text
                   style={[styles.messages, {backgroundColor: 'yellow'}]}
                   key={idx}>
@@ -97,7 +113,8 @@ class Chat extends Component {
               </View>
             ) : (
               <View
-                style={{alignItems: 'flex-start', margin: 5, marginLeft: 10}}>
+                style={{alignItems: 'flex-start', margin: 5, marginLeft: 10}}
+                key={idx}>
                 <Text>{item.name}</Text>
                 <Text
                   style={[styles.messages, {backgroundColor: 'white'}]}

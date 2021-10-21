@@ -2,7 +2,12 @@ import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import {URL} from '../../utils/misc';
 
-import {SEND_MESSAGE, RECIEVE_MESSAGE, GET_ROOMID} from '../../store/types';
+import {
+  SEND_MESSAGE,
+  RECIEVE_MESSAGE,
+  GET_ROOMID,
+  LEAVE_ROOM,
+} from '../../store/types';
 
 export var sock = new SockJS(`${URL}start-ws`);
 export var ws = Stomp.over(sock);
@@ -38,6 +43,7 @@ export const sendMsg =
       '/pub/chat/message',
       {},
       JSON.stringify({
+        type: 'USER',
         roomId: roomId,
         senderId: senderId,
         message: txtMsg,
@@ -63,4 +69,10 @@ export const recieveMsg = (recv) => async (dispatch) => {
 export const getRoomId = (roomId, userId, userName) => async (dispatch) => {
   dispatch({type: GET_ROOMID, payload: {roomId, userId, userName}});
   console.log('get roomId');
+};
+
+export const leaveRoom = (roomId, userId) => async (dispatch) => {
+  fetch(`${URL}chat/leaveRoom/${roomId}?userId=${userId}`).then(() => {
+    dispatch({type: LEAVE_ROOM});
+  });
 };

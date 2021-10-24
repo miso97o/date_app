@@ -7,6 +7,8 @@ import {
   RECIEVE_MESSAGE,
   GET_ROOMID,
   LEAVE_ROOM,
+  CREATE_VOTE,
+  COMPLETE_VOTE,
 } from '../../store/types';
 
 export var sock = new SockJS(`${URL}start-ws`);
@@ -75,4 +77,12 @@ export const leaveRoom = (roomId, userId) => async (dispatch) => {
   fetch(`${URL}chat/leaveRoom/${roomId}?userId=${userId}`).then(() => {
     dispatch({type: LEAVE_ROOM});
   });
+};
+
+export const createVote = (discription) => async (dispatch) => {
+  dispatch({type: CREATE_VOTE, payload: discription});
+};
+
+export const completeVote = () => async (dispatch) => {
+  dispatch({type: COMPLETE_VOTE});
 };

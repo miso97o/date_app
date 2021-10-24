@@ -13,7 +13,11 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import {URL} from '../../utils/misc';
-import {sendMsg, recieveMsg} from '../../store/actions/chat_action';
+import {
+  sendMsg,
+  recieveMsg,
+  completeVote,
+} from '../../store/actions/chat_action';
 
 import {connect} from 'react-redux';
 
@@ -71,6 +75,38 @@ class Chat extends Component {
     console.log(this.props.Chat);
   };
 
+  createVote = () => {
+    if (this.props.Chat.vote && !this.props.Chat.voted) {
+      // 다른 함수 적용
+      return (
+        <View style={styles.voteContainer}>
+          <Icon name="vote" size={36} />
+          <View style={{justifyContent: 'center', margin: 10, width: '60%'}}>
+            <Text style={{fontSize: 19}}>{this.props.Chat.discription}</Text>
+          </View>
+          <View style={{flexDirection: 'row'}}>
+            <TouchableOpacity
+              style={styles.voteButton}
+              onPress={() => {
+                alert('참가 투표');
+                this.props.completeVote();
+              }}>
+              <Text>참가</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.voteButton}
+              onPress={() => {
+                alert('불참 투표');
+                this.props.completeVote();
+              }}>
+              <Text>불참</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+  };
+
   render() {
     return (
       <View
@@ -78,6 +114,7 @@ class Chat extends Component {
           flex: 1,
           justifyContent: 'space-between',
         }}>
+        {this.createVote()}
         <ScrollView
           style={{flex: 1, backgroundColor: '#eeeeee'}}
           ref={(ref) => (this.scrollView = ref)}
@@ -166,10 +203,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: 48,
   },
+  voteContainer: {
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: 'gray',
+    flexDirection: 'row',
+    padding: 7,
+    margin: 5,
+    alignItems: 'center',
+  },
+  voteButton: {
+    backgroundColor: 'skyblue',
+    padding: 5,
+    marginLeft: 5,
+    marginRight: 15,
+    borderRadius: 10,
+    justifyContent: 'center',
+  },
 });
 
 function mapStateToProps(state) {
   return {Chat: state.Chat, User: state.User};
 }
 
-export default connect(mapStateToProps, {sendMsg, recieveMsg})(Chat);
+// eslint-disable-next-line prettier/prettier
+export default connect(mapStateToProps, {sendMsg, recieveMsg, completeVote})(Chat);

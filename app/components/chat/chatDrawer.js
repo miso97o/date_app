@@ -9,9 +9,10 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Dialog from 'react-native-dialog';
 
 import {URL} from '../../utils/misc';
-import {leaveRoom} from '../../store/actions/chat_action';
+import {leaveRoom, createVote} from '../../store/actions/chat_action';
 import axios from 'axios';
 
 import {CommonActions} from '@react-navigation/routers';
@@ -22,6 +23,9 @@ class ChatDrawer extends Component {
     super(props);
     this.state = {
       users: [],
+      ownerId: '',
+      dialogVisible: false,
+      dialogText: '',
     };
     this.getUsers();
   }
@@ -40,27 +44,66 @@ class ChatDrawer extends Component {
       method: 'GET',
       url: `${URL}chat/roomInfo/${this.props.Chat.roomId}`,
     }).then((res) => {
-      console.log('console', res.data.userList);
-      this.setState({users: res.data.userList});
+      console.log('roomInfo', res.data);
+      this.setState({users: res.data.userList, ownerId: res.data.ownerId});
     });
   };
 
-  // componentDidMount() {
-  //   this.getUsers();
-  // }
+  changeVote = () => {
+    this.props.createVote(this.state.dialogText);
+    this.setState({dialogVisible: false, dialogText: ''});
+  };
 
   render() {
     var userList = this.state.users;
-    // console.log('users: ', userList);
     return (
       <View style={{flex: 1}}>
         <ScrollView style={{backgroundColor: 'white'}}>
           <View style={styles.menuContainer}>
-            <Text>Menu</Text>
-            <TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuContent}
+              onPress={() => {
+                if (this.state.ownerId === this.props.User.auth.userId) {
+                  this.setState({dialogVisible: true});
+                } else {
+                  alert('방장만 투표를 진행할 수 있습니다.');
+                }
+              }}>
               <Icon name="vote" size={36} />
+              <Text> 참가 투표</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuContent}
+              onPress={() => {
+                if (this.state.ownerId === this.props.User.auth.userId) {
+                  alert('약속 완료');
+                } else {
+                  alert('방장만 투표를 진행할 수 있습니다.');
+                }
+              }}>
+              <Icon name="check-circle-outline" size={36} />
+              <Text> 약속 완료</Text>
             </TouchableOpacity>
           </View>
+          <Dialog.Container visible={this.state.dialogVisible}>
+            <Dialog.Title>참가 확인 투표</Dialog.Title>
+            <Dialog.Description>
+              약속 내용을 적고 참가 확인 투표를 진행하세요.
+            </Dialog.Description>
+            <Dialog.Input
+              placeholder="예시) 저녁 6시 시청역"
+              value={this.state.dialogText}
+              onChangeText={(value) => this.setState({dialogText: value})}
+              style={{borderBottomWidth: 0.7}}
+            />
+            <Dialog.Button label="예" onPress={() => this.changeVote()} />
+            <Dialog.Button
+              label="취소"
+              onPress={() =>
+                this.setState({dialogVisible: false, dialogText: ''})
+              }
+            />
+          </Dialog.Container>
           <View style={styles.userContainer}>
             <Text style={{fontSize: 24, fontWeight: 'bold', padding: 5}}>
               대화상대
@@ -105,7 +148,7 @@ class ChatDrawer extends Component {
 const styles = StyleSheet.create({
   menuContainer: {
     padding: 15,
-    height: 100,
+    height: 120,
     justifyContent: 'center',
     borderBottomWidth: 0.7,
     margin: 3,
@@ -119,6 +162,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     padding: 3,
   },
+  menuContent: {
+    flexDirection: 'row',
+    padding: 5,
+    margin: 5,
+    alignItems: 'center',
+  },
 });
 
 function mapStateToProps(state) {
@@ -129,4 +178,4 @@ function mapStateToProps(state) {
   };
 }
 
-export default connect(mapStateToProps, {leaveRoom})(ChatDrawer);
+export default connect(mapStateToProps, {leaveRoom, createVote})(ChatDrawer);

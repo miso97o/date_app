@@ -1,4 +1,11 @@
-import {RECIEVE_MESSAGE, SEND_MESSAGE, GET_ROOMID, LEAVE_ROOM} from '../types';
+import {
+  RECIEVE_MESSAGE,
+  SEND_MESSAGE,
+  GET_ROOMID,
+  LEAVE_ROOM,
+  CREATE_VOTE,
+  COMPLETE_VOTE,
+} from '../types';
 
 const initialState = {
   messages: [],
@@ -47,6 +54,20 @@ export default function (state = initialState, {type, payload}) {
       };
     case LEAVE_ROOM:
       return initialState;
+    case CREATE_VOTE:
+      return {
+        ...state,
+        vote: true,
+        voted: false,
+        discription: payload,
+      };
+    case COMPLETE_VOTE:
+      return {
+        ...state,
+        voted: true,
+        vote: false,
+        discription: '',
+      };
     default:
       return state;
   }

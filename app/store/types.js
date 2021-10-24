@@ -6,3 +6,5 @@ export const RECIEVE_MESSAGE = 'recieve_message';
 export const SEND_MESSAGE = 'send_message';
 export const GET_ROOMID = 'get_roomid';
 export const LEAVE_ROOM = 'leave_room';
+export const CREATE_VOTE = 'create_vote';
+export const COMPLETE_VOTE = 'complete_vote';

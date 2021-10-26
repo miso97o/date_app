@@ -8,13 +8,12 @@ import {
   TouchableOpacity,
   BackHandler,
 } from 'react-native';
+// import Stars from 'react-native-stars';
 import MyProfile from './myProfile';
-import Profile from '../../utils/forms/profile';
 
 class FriendsComponent extends Component {
   state = {
     // 인증이 된 상태인지 확인하는 변수
-    isAuth: true,
     user: {
       name: '황준원',
       introduce: '안녕하세요',
@@ -34,10 +33,6 @@ class FriendsComponent extends Component {
     },
   };
 
-  manageState = (isAuth) => {
-    this.setState({isAuth});
-  };
-
   goToInfo = (user) => {
     this.props.navigation.push('Info', user);
   };
@@ -51,25 +46,41 @@ class FriendsComponent extends Component {
       <ScrollView style={{flex: 1, backgroundColor: 'white'}}>
         <View>
           <MyProfile user={this.state.user} goToInfo={this.goToInfo} />
-          <View style={{alignItems: 'center', margin: 5}}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => alert('Not Implemented')}>
-              <Text style={{fontSize: 20, fontWeight: 'bold'}}>Matching</Text>
-            </TouchableOpacity>
+
+          <View style={{marginLeft: 10}}>
+            <Text>평가점수</Text>
           </View>
-          <View style={{borderTopWidth: 1, borderRadius: 15}}>
-            {this.state.user.friends.map((item, index) => {
-              return (
-                <Profile
-                  name={item.name}
-                  introduce={item.introduce}
-                  key={index}
-                  goToInfo={this.goToInfo}
-                  goToChat={this.goToChat}
-                />
-              );
-            })}
+          <View style={styles.scoreContainer}>
+            <Text>Star</Text>
+          </View>
+
+          <View style={{marginLeft: 10}}>
+            <Text>기록</Text>
+          </View>
+          <View
+            style={{
+              justifyContent: 'center',
+              margin: 10,
+              paddingBottom: 10,
+            }}>
+            <View style={styles.container}>
+              <Text style={styles.titleText}>방 제목</Text>
+              <Text>방 정보</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => this.props.navigation.navigate('Evaluate')}
+              style={styles.button}>
+              <Text style={{fontSize: 18}}>평가 하기</Text>
+            </TouchableOpacity>
+            <View style={styles.container}>
+              <Text style={styles.titleText}>방 제목 2</Text>
+              <Text>방 정보</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => this.props.navigation.navigate('Evaluate')}
+              style={styles.button}>
+              <Text style={{fontSize: 18}}>평가 하기</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -79,13 +90,26 @@ class FriendsComponent extends Component {
 
 const styles = StyleSheet.create({
   button: {
-    width: '80%',
-    height: 50,
-    backgroundColor: 'skyblue',
-    justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 5,
-    margin: 5,
+    justifyContent: 'center',
+    padding: 5,
+    borderBottomWidth: 6,
+    borderBottomColor: 'rgb(226,226,226)',
+  },
+  titleText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  container: {
+    paddingBottom: 5,
+    borderBottomWidth: 0.5,
+  },
+  scoreContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 10,
+    height: 70,
+    borderBottomWidth: 0.5,
   },
 });
 

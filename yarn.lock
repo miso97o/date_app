@@ -6738,6 +6738,11 @@
   "resolved" "https://registry.npmjs.org/react-native-screens/-/react-native-screens-2.11.0.tgz"
   "version" "2.11.0"
 
+"react-native-stars@1.2.2":
+  "integrity" "sha512-ROoluqPqv93ycUV3Mwf/p1fFW2TOcb6juhGrMb5oNYYTa0aTe4WgnboipNWLe5viDlC8XYLS+g5WpZBvCzwFkw=="
+  "resolved" "https://registry.npmjs.org/react-native-stars/-/react-native-stars-1.2.2.tgz"
+  "version" "1.2.2"
+
 "react-native-text-truncate@0.0.4":
   "integrity" "sha512-OgcCBmCkyWMLcmo3Du2oI6gMtVazEj9eulMmGEceKYMd0KHGQHN1+gVSMuZ4oGZGF6DmjElW6NtFUqIahkPIQw=="
   "resolved" "https://registry.npmjs.org/react-native-text-truncate/-/react-native-text-truncate-0.0.4.tgz"

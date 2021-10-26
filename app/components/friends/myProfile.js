@@ -29,15 +29,14 @@ class MyProfile extends Component {
 
 const styles = StyleSheet.create({
   profile: {
-    width: '100%',
-    height: 80,
+    height: 100,
     backgroundColor: 'white',
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 0.5,
-    borderBottomColor: 'black',
     justifyContent: 'space-between',
-    paddingRight: 10,
+    margin: 10,
+    marginTop: 0,
   },
   introduce: {
     fontSize: 15,

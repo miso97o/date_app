@@ -7,9 +7,11 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Dialog from 'react-native-dialog';
+import AndroidDialogPicker from 'react-native-android-dialog-picker';
 
 import {URL} from '../../utils/misc';
 import {leaveRoom, createVote} from '../../store/actions/chat_action';
@@ -50,12 +52,61 @@ class ChatDrawer extends Component {
   };
 
   changeVote = () => {
-    this.props.createVote(this.state.dialogText);
+    this.props.createVote(this.state.dialogText, this.props.Chat.roomId);
     this.setState({dialogVisible: false, dialogText: ''});
+  };
+
+  endVote = () => {
+    if (
+      this.props.Chat.voteState === 'ING' ||
+      this.props.Chat.voteState === 'DID'
+    ) {
+      fetch(`${URL}chat/endVote/${this.props.Chat.roomId}`, {
+        method: 'POST',
+      }).then((res) => {
+        console.log(res);
+        alert('투표가 완료되었습니다.');
+      });
+    }
+  };
+
+  showPicker = (list) => {
+    AndroidDialogPicker.show(
+      {
+        title: '방장 위임',
+        items: list,
+        cancelText: '취소',
+      },
+      (index) => console.log(index),
+    );
+  };
+
+  showDialog = () => {
+    return (
+      <Dialog.Container visible={this.state.dialogVisible}>
+        <Dialog.Title>참가 확인 투표</Dialog.Title>
+        <Dialog.Description>
+          약속 내용을 적고 참가 확인 투표를 진행하세요.
+        </Dialog.Description>
+        <Dialog.Input
+          placeholder="예시) 저녁 6시 시청역"
+          value={this.state.dialogText}
+          onChangeText={(value) => this.setState({dialogText: value})}
+          style={{borderBottomWidth: 0.7}}
+        />
+        <Dialog.Button label="예" onPress={() => this.changeVote()} />
+        <Dialog.Button
+          label="취소"
+          onPress={() => this.setState({dialogVisible: false, dialogText: ''})}
+        />
+      </Dialog.Container>
+    );
   };
 
   render() {
     var userList = this.state.users;
+    var nameList = userList.map((item) => item.name);
+
     return (
       <View style={{flex: 1}}>
         <ScrollView style={{backgroundColor: 'white'}}>
@@ -66,61 +117,60 @@ class ChatDrawer extends Component {
                 if (this.state.ownerId === this.props.User.auth.userId) {
                   this.setState({dialogVisible: true});
                 } else {
-                  alert('방장만 투표를 진행할 수 있습니다.');
+                  alert('방장만 가능합니다.');
                 }
               }}>
               <Icon name="vote" size={36} />
               <Text> 참가 투표</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.menuContent}
               onPress={() => {
                 if (this.state.ownerId === this.props.User.auth.userId) {
-                  alert('약속 완료');
+                  this.endVote();
                 } else {
-                  alert('방장만 투표를 진행할 수 있습니다.');
+                  alert('방장만 가능합니다.');
                 }
               }}>
               <Icon name="check-circle-outline" size={36} />
               <Text> 약속 완료</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuContent}
+              onPress={() => {
+                if (this.state.ownerId === this.props.User.auth.userId) {
+                  this.showPicker(nameList);
+                } else {
+                  alert('방장만 가능합니다.');
+                }
+              }}>
+              <Icon name="account-arrow-right" size={36} />
+              <Text> 방장 위임</Text>
+            </TouchableOpacity>
           </View>
-          <Dialog.Container visible={this.state.dialogVisible}>
-            <Dialog.Title>참가 확인 투표</Dialog.Title>
-            <Dialog.Description>
-              약속 내용을 적고 참가 확인 투표를 진행하세요.
-            </Dialog.Description>
-            <Dialog.Input
-              placeholder="예시) 저녁 6시 시청역"
-              value={this.state.dialogText}
-              onChangeText={(value) => this.setState({dialogText: value})}
-              style={{borderBottomWidth: 0.7}}
-            />
-            <Dialog.Button label="예" onPress={() => this.changeVote()} />
-            <Dialog.Button
-              label="취소"
-              onPress={() =>
-                this.setState({dialogVisible: false, dialogText: ''})
-              }
-            />
-          </Dialog.Container>
+
+          {this.showDialog()}
           <View style={styles.userContainer}>
             <Text style={{fontSize: 24, fontWeight: 'bold', padding: 5}}>
               대화상대
             </Text>
             {userList.map((item, idx) => (
-              <TouchableOpacity key={idx} style={{flexDirection: 'row'}}>
-                {item.userId === this.props.User.auth.userId ? (
-                  <Text
-                    style={{
-                      padding: 7,
-                      borderRadius: 20,
-                      backgroundColor: 'skyblue',
-                    }}>
-                    {' 나 '}
+              <TouchableOpacity
+                key={idx}
+                style={{flexDirection: 'row', alignItems: 'center'}}>
+                {item.userId === this.state.ownerId ? (
+                  <Text style={[styles.note, {backgroundColor: 'yellow'}]}>
+                    {'방장'}
                   </Text>
                 ) : null}
-                <Text style={styles.userText}> {item.name}</Text>
+                {item.userId === this.props.User.auth.userId ? (
+                  <Text style={[styles.note, {backgroundColor: 'skyblue'}]}>
+                    {'나'}
+                  </Text>
+                ) : null}
+                <Text style={styles.userText}>{item.name}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -132,7 +182,7 @@ class ChatDrawer extends Component {
               this.props.Chat.roomId,
               this.props.User.auth.userId,
             ),
-            this.props.navigation.navigate('Map'),
+            this.props.navigation.navigate('Main'),
           ]}>
           <Image
             source={require('../../assests/images/logout.png')}
@@ -148,7 +198,6 @@ class ChatDrawer extends Component {
 const styles = StyleSheet.create({
   menuContainer: {
     padding: 15,
-    height: 120,
     justifyContent: 'center',
     borderBottomWidth: 0.7,
     margin: 3,
@@ -167,6 +216,11 @@ const styles = StyleSheet.create({
     padding: 5,
     margin: 5,
     alignItems: 'center',
+  },
+  note: {
+    padding: 5,
+    borderRadius: 10,
+    marginRight: 5,
   },
 });
 

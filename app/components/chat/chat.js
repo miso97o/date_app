@@ -30,7 +30,10 @@ class Chat extends Component {
       senderId: props.Chat.senderId,
       senderName: props.Chat.senderName,
       newMessage: '',
+      voteState: 'BEFORE', // before, ing, did, finish
+      voteTitle: '',
     };
+    this.checkVoteState();
     // connection(props.Chat.roomId, props.Chat.senderId);
     var sock = new SockJS(`${URL}start-ws`);
     var ws = Stomp.over(sock);
@@ -76,35 +79,49 @@ class Chat extends Component {
   };
 
   createVote = () => {
-    if (this.props.Chat.vote && !this.props.Chat.voted) {
+    if (this.state.voteState === 'ING') {
       // 다른 함수 적용
       return (
         <View style={styles.voteContainer}>
           <Icon name="vote" size={36} />
           <View style={{justifyContent: 'center', margin: 10, width: '60%'}}>
-            <Text style={{fontSize: 19}}>{this.props.Chat.discription}</Text>
+            <Text style={{fontSize: 19}}>{this.state.voteTitle}</Text>
           </View>
           <View style={{flexDirection: 'row'}}>
             <TouchableOpacity
               style={styles.voteButton}
               onPress={() => {
-                alert('참가 투표');
                 this.props.completeVote();
+                this.setState({voteState: 'DID'});
+                alert('참가 투표 되었습니다.');
               }}>
               <Text>참가</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.voteButton}
               onPress={() => {
-                alert('불참 투표');
-                this.props.completeVote();
+                this.setState({voteState: 'DID'});
               }}>
-              <Text>불참</Text>
+              <Text>취소</Text>
             </TouchableOpacity>
           </View>
         </View>
       );
     }
+  };
+
+  checkVoteState = () => {
+    fetch(`${URL}chat/vote/${this.state.roomId}`).then((res) =>
+      res.json().then((json) => {
+        console.log(json);
+        this.setState({voteState: json.state, voteTitle: json.name});
+        json.userList.map((item) => {
+          if (item.userId === this.props.Chat.senderId) {
+            this.setState({voteState: 'DID'});
+          }
+        });
+      }),
+    );
   };
 
   render() {

@@ -57,16 +57,14 @@ export default function (state = initialState, {type, payload}) {
     case CREATE_VOTE:
       return {
         ...state,
-        vote: true,
-        voted: false,
-        discription: payload,
+        voteTitle: payload.title,
+        voteState: payload.state,
       };
     case COMPLETE_VOTE:
       return {
         ...state,
-        voted: true,
-        vote: false,
-        discription: '',
+        voteTitle: '',
+        voteState: 'DID',
       };
     default:
       return state;

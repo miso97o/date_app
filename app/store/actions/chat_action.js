@@ -70,19 +70,34 @@ export const recieveMsg = (recv) => async (dispatch) => {
 
 export const getRoomId = (roomId, userId, userName) => async (dispatch) => {
   dispatch({type: GET_ROOMID, payload: {roomId, userId, userName}});
-  console.log('get roomId');
+  console.log('store roomId');
 };
 
 export const leaveRoom = (roomId, userId) => async (dispatch) => {
   fetch(`${URL}chat/leaveRoom/${roomId}?userId=${userId}`).then(() => {
+    console.log('leave room');
     dispatch({type: LEAVE_ROOM});
   });
 };
 
-export const createVote = (discription) => async (dispatch) => {
-  dispatch({type: CREATE_VOTE, payload: discription});
+export const createVote = (title, roomId) => async (dispatch) => {
+  fetch(`${URL}chat/createVote/${roomId}`, {
+    method: 'POST',
+    body: {
+      name: title,
+      state: 'ING',
+    },
+    // headers: {
+    //   'Content-Type': 'application/json',
+    //   'Accept': 'application/json',
+    // },
+  }).then((res) => console.log(res));
+  dispatch({type: CREATE_VOTE, payload: {title, state: 'ING'}});
 };
 
-export const completeVote = () => async (dispatch) => {
+export const completeVote = (roomId) => async (dispatch) => {
+  fetch(`${URL}chat/vote/${roomId}`, {
+    method: 'POST',
+  }).then((res) => console.log(res));
   dispatch({type: COMPLETE_VOTE});
 };

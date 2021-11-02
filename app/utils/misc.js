@@ -10,22 +10,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import firebase from 'firebase';
 
 //firebase API의 상세내용
-const firebaseConfig = {
-  apiKey: 'AIzaSyBwLWHUNQir-HoAGjtYe6eB8SgDpJL3CJg',
-  authDomain: 'rn-learn-app-dcbba.firebaseapp.com',
-  databaseURL:
-    'https://rn-learn-app-dcbba-default-rtdb.asia-southeast1.firebasedatabase.app',
-  projectId: 'rn-learn-app-dcbba',
-  storageBucket: 'rn-learn-app-dcbba.appspot.com',
-  messagingSenderId: '923116090504',
-  appId: '1:923116090504:web:4ccaeae00ea1cbfd761b3d',
-};
+// const firebaseConfig = {
+//   apiKey: 'AIzaSyBwLWHUNQir-HoAGjtYe6eB8SgDpJL3CJg',
+//   authDomain: 'rn-learn-app-dcbba.firebaseapp.com',
+//   databaseURL:
+//     'https://rn-learn-app-dcbba-default-rtdb.asia-southeast1.firebasedatabase.app',
+//   projectId: 'rn-learn-app-dcbba',
+//   storageBucket: 'rn-learn-app-dcbba.appspot.com',
+//   messagingSenderId: '923116090504',
+//   appId: '1:923116090504:web:4ccaeae00ea1cbfd761b3d',
+// };
 
-firebase.initializeApp(firebaseConfig);
+// firebase.initializeApp(firebaseConfig);
 
-export const storage = firebase.storage();
-export const database = firebase.database();
-export const auth = firebase.auth();
+// export const storage = firebase.storage();
+// export const database = firebase.database();
+// export const auth = firebase.auth();
 
 // 로그인하면 그 정보에 대한 토큰을 로컬저장소에 저장
 export const setTokens = async (values, callBack) => {

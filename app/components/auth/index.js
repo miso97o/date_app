@@ -11,7 +11,7 @@ import {bindActionCreators} from 'redux';
 
 class AuthComponent extends Component {
   goWithoutLogin = () => {
-    this.props.navigation.navigate('AppStackComponent');
+    this.props.navigation.navigate('Main');
   };
 
   componentDidMount() {

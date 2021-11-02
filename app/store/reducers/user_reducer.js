@@ -9,9 +9,7 @@ export default function (state = {}, action) {
           userId: action.payload.userId || false,
           userName: action.payload.userName || false,
         },
-        //   token: action.payload.idToken || false,
-        //   refToken: action.payload.refreshToken || false,
-        // },
+        // roomId: action.payload.roomId || false,
       };
     case SIGN_UP:
       return {
@@ -28,6 +26,7 @@ export default function (state = {}, action) {
           userId: action.payload.userId || false,
           userName: action.payload.userName || false,
         },
+        // roomId: action.payload.roomId || false,
       };
     default:
       return state;

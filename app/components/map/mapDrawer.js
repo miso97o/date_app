@@ -40,9 +40,19 @@ class MapDrawer extends Component {
             </Text>
           </View>
           <View style={styles.menuContainer}>
-            <Text style={styles.menuText}>Menu</Text>
-            <TouchableOpacity>
-              <Text style={styles.menuText}>My Info</Text>
+            <Text style={styles.title}>Menu</Text>
+            <TouchableOpacity style={styles.button}>
+              <Text style={styles.menuText}>내 정보</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                // this.props.Chat.roomId
+                //   ? this.props.navigation.push('Chat')
+                //   : alert('소속중인 방이 없습니다.');
+                this.props.navigation.push('Chat');
+              }}>
+              <Text style={styles.menuText}>채팅</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -61,6 +71,14 @@ const styles = StyleSheet.create({
   menuContainer: {
     marginLeft: 5,
     padding: 10,
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  button: {
+    margin: 5,
   },
   menuText: {
     fontSize: 24,

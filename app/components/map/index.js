@@ -10,14 +10,15 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import NaverMapView, {Marker, Align} from 'react-native-nmap';
+import NaverMapView, {Marker} from 'react-native-nmap';
 import {Picker} from '@react-native-picker/picker';
 import Geolocation from 'react-native-geolocation-service';
 
 import {CLIENT_ID, CLIENT_SECERET, URL} from '../../utils/misc';
 
 import {connect} from 'react-redux';
-import {getRoomId} from '../../store/actions/chat_action';
+import {getRoomId, leaveRoom} from '../../store/actions/chat_action';
+import {Alert} from 'react-native';
 
 async function requestPermission() {
   return await PermissionsAndroid.request(
@@ -94,17 +95,20 @@ class MapComponent extends Component {
   };
 
   touchedMarker = (P) => {
-    return <Marker coordinate={P} width={70} height={75} />;
+    return (
+      <Marker coordinate={P} width={70} height={70} pinColor={'rgb(255,0,0)'} />
+    );
   };
 
   modeChange = () => {
     this.state.mode === 'create'
       ? this.setState({mode: 'enter'})
-      : this.setState({mode: 'create'});
+      : this.setState({mode: 'create', roomId: ''});
     this.setState({title: '', category: '', loc: {latitude: 0, longitude: 0}});
   };
 
   createRoom = async () => {
+    console.log('만들기');
     if (
       this.state.title === '' ||
       this.state.category === '' ||
@@ -116,7 +120,7 @@ class MapComponent extends Component {
         method: 'POST',
         headers: {
           // eslint-disable-next-line prettier/prettier
-          'Accept': 'application/json',
+            'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -128,14 +132,9 @@ class MapComponent extends Component {
         }),
       })
         .then((response) => {
-          console.log('res: ', response);
           response.json().then((responseJson) => {
+            console.log('createRoom: ', responseJson);
             this.setState({roomId: responseJson.roomId});
-            this.props.getRoomId(
-              this.state.roomId,
-              this.props.User.auth.userId,
-              this.props.User.auth.userName,
-            );
           });
         })
         .then(() => {
@@ -179,7 +178,7 @@ class MapComponent extends Component {
     await fetch(`${URL}chat/rooms`)
       .then((response) => response.json())
       .then((responseJson) => {
-        console.log(responseJson);
+        console.log('rooms: ', responseJson);
         this.setState({rooms: responseJson});
       });
   };
@@ -188,17 +187,49 @@ class MapComponent extends Component {
     await fetch(
       `${URL}chat/room/${this.state.roomId}?userId=${this.props.User.auth.userId}`,
     ).then((res) => {
-      console.log(res);
+      console.log('enterRoom: ', res);
       this.props.getRoomId(
         this.state.roomId,
         this.props.User.auth.userId,
         this.props.User.auth.userName,
       );
-      this.props.navigation.navigate('Chat', {
-        roomId: this.state.roomId,
-        userId: this.props.User.auth.userId,
-      });
+      this.props.navigation.push('Chat');
     });
+  };
+
+  checkHasRoom = (mode) => {
+    // 들어가 있는 방이 있을 때
+    if (this.props.Chat.roomId) {
+      // 같은방에 다시 들어감
+      if (this.props.Chat.roomId === this.state.roomId) {
+        this.props.navigation.push('Chat');
+      } else {
+        // 다른 방에 들어가려함
+        Alert.alert(
+          '방을 옮기시겠습니까?',
+          '기존에 있던 채팅방의 기록이 사라집니다.',
+          [
+            {
+              text: '예',
+              onPress: () => {
+                this.props.leaveRoom();
+                mode === 'enter' ? this.enterRoom() : this.createRoom();
+              },
+            },
+            {
+              text: '아니오',
+              onPress: () => {
+                return false;
+              },
+              style: 'cancel',
+            },
+          ],
+        );
+      }
+    } else {
+      // 들어가 있는 방이 없음
+      mode === 'enter' ? this.enterRoom() : this.createRoom();
+    }
   };
 
   getCategory = (key) => {
@@ -243,6 +274,19 @@ class MapComponent extends Component {
         );
       }
     });
+    fetch(`${URL}user/room`)
+      .then((res) => res.json())
+      .then((resJson) => {
+        console.log('roomId check', resJson);
+        if (resJson.roomId) {
+          this.props.getRoomId(
+            resJson.roomId,
+            this.props.User.auth.userId,
+            this.props.User.auth.userName,
+          );
+          this.props.navigation.navigate('Chat');
+        }
+      });
     this.getRooms();
     // beforeRemove는 유저가 이전화면으롤 떠나지 못하게 함.
     this.props.navigation.addListener('beforeRemove', (e) => {
@@ -274,6 +318,11 @@ class MapComponent extends Component {
                         longitude: item.longitude,
                       }}
                       key={idx}
+                      pinColor={
+                        item.roomId === this.props.Chat.roomId
+                          ? 'rgb(255,0,0)'
+                          : ''
+                      }
                       onClick={() => [
                         this.setState({
                           touched: true,
@@ -359,7 +408,7 @@ class MapComponent extends Component {
                   </View>
                   <TouchableOpacity
                     style={styles.button}
-                    onPress={() => this.enterRoom()}>
+                    onPress={() => this.checkHasRoom(this.state.mode)}>
                     <Text>참여</Text>
                   </TouchableOpacity>
                 </View>
@@ -370,7 +419,8 @@ class MapComponent extends Component {
                 <NaverMapView
                   style={{width: '100%', height: '90%'}}
                   showsMyLocationButton={true}
-                  center={{...this.state.currentLocation, zoom: 16}}>
+                  center={{...this.state.currentLocation, zoom: 16}}
+                  onMapClick={(e) => console.log(e)}>
                   {P.map((item, idx) => (
                     <Marker
                       coordinate={{
@@ -378,6 +428,11 @@ class MapComponent extends Component {
                         longitude: item.longitude,
                       }}
                       key={idx}
+                      pinColor={
+                        item.roomId === this.props.Chat.roomId
+                          ? 'rgb(255,0,0)'
+                          : ''
+                      }
                       onClick={() => [
                         this.setState({
                           touched: true,
@@ -515,7 +570,7 @@ class MapComponent extends Component {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.button}
-                onPress={() => this.createRoom()}>
+                onPress={() => this.checkHasRoom(this.state.mode)}>
                 <Text>완성</Text>
               </TouchableOpacity>
             </View>
@@ -537,7 +592,7 @@ const styles = StyleSheet.create({
   },
   defText: {
     padding: 3,
-    paddingLeft: 10,
+    paddingLeft: 7,
     color: 'gray',
   },
   titleText: {
@@ -595,4 +650,4 @@ function mapStateToProps(state) {
   };
 }
 
-export default connect(mapStateToProps, {getRoomId})(MapComponent);
+export default connect(mapStateToProps, {getRoomId, leaveRoom})(MapComponent);

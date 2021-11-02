@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   BackHandler,
 } from 'react-native';
-// import Stars from 'react-native-stars';
+import Stars from 'react-native-stars';
 import MyProfile from './myProfile';
 
 class FriendsComponent extends Component {
@@ -18,19 +18,9 @@ class FriendsComponent extends Component {
       name: '황준원',
       introduce: '안녕하세요',
       imagePath: '../../assests/images/good.png',
-      friends: [
-        {
-          name: '박도영',
-          introduce: '하이하이',
-          imagePath: '../../assests/images/very_good.png',
-        },
-        {
-          name: '박종욱',
-          introduce: 'Hello',
-          imagePath: '',
-        },
-      ],
+      starScore: 3.65,
     },
+    starCount: 5,
   };
 
   goToInfo = (user) => {
@@ -51,7 +41,15 @@ class FriendsComponent extends Component {
             <Text>평가점수</Text>
           </View>
           <View style={styles.scoreContainer}>
-            <Text>Star</Text>
+            <Stars
+              display={this.state.user.starScore}
+              count={this.state.starCount}
+              spacing={5}
+              starSize={50}
+              fullStar={require('../../assests/images/filledstar.png')}
+              emptyStar={require('../../assests/images/emptystar.png')}
+            />
+            <Text>{`${this.state.user.starScore}/${this.state.starCount}`}</Text>
           </View>
 
           <View style={{marginLeft: 10}}>
@@ -101,7 +99,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   container: {
-    paddingBottom: 5,
+    padding: 5,
     borderBottomWidth: 0.5,
   },
   scoreContainer: {

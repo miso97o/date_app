@@ -16,6 +16,7 @@ import Chat from './components/chat/chat';
 import EnlargedImage from './components/friends/enlargeImage';
 import MapDrawer from './components/map/mapDrawer';
 import ChatDrawer from './components/chat/chatDrawer';
+import Evaluate from './components/friends/evaluate';
 import Logo from './utils/logo';
 // import Loading from './components/auth/loading';
 
@@ -25,7 +26,6 @@ import {TouchableOpacity} from 'react-native';
 const AuthStack = createStackNavigator();
 const MainScreenTab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-const MainStack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
 const headerConfig = {
@@ -126,10 +126,14 @@ const FriendsStackComponent = () => {
       <Stack.Screen
         name="Friends"
         component={Friends}
-        options={headerConfig_}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Evaluate"
+        component={Evaluate}
+        options={{headerTitle: ''}}
       />
       <Stack.Screen name="Info" component={Info} options={headerConfig} />
-      <Stack.Screen name="Chat" component={Chat} />
       <Stack.Screen
         name="EnlargedImage"
         component={EnlargedImage}
@@ -163,15 +167,22 @@ const MainTabComponent = () => {
   );
 };
 
-const AppStackComponent = () => {
+// 인증 확인 네비게이터, 앱 폴더의 index.js에서 사용
+export const RootNavigator = () => {
   return (
-    <MainStack.Navigator>
-      <MainStack.Screen
+    <AuthStack.Navigator>
+      {/* <AuthStack.Screen name="Loading" component={Loading} /> */}
+      <AuthStack.Screen
+        name="SignIn"
+        component={SignIn}
+        options={() => ({gestureEnabled: false, headerShown: false})}
+      />
+      <AuthStack.Screen
         name="Main"
         component={MainTabComponent}
-        options={{headerShown: false}}
+        options={() => ({gestureEnabled: false, headerShown: false})}
       />
-      <MainStack.Screen
+      <AuthStack.Screen
         name="Chat"
         component={ChatDrawerComponent}
         options={({navigation}) => ({
@@ -182,27 +193,15 @@ const AppStackComponent = () => {
               <Icon name="menu" size={36} />
             </TouchableOpacity>
           ),
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{marginLeft: 10}}
+              onPress={() => navigation.navigate('Main')}>
+              <Icon name="map-outline" size={36} />
+            </TouchableOpacity>
+          ),
           headerTitle: '',
         })}
-      />
-    </MainStack.Navigator>
-  );
-};
-
-// 인증 확인 네비게이터, 앱 폴더의 index.js에서 사용
-export const RootNavigator = () => {
-  return (
-    <AuthStack.Navigator screenOptions={{headerShown: false}}>
-      {/* <AuthStack.Screen name="Loading" component={Loading} /> */}
-      <AuthStack.Screen
-        name="SignIn"
-        component={SignIn}
-        options={() => ({gestureEnabled: false})}
-      />
-      <AuthStack.Screen
-        name="AppStackComponent"
-        component={AppStackComponent}
-        options={() => ({gestureEnabled: false})}
       />
     </AuthStack.Navigator>
   );

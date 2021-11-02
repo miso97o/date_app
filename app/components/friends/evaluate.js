@@ -5,8 +5,9 @@ import {
   View,
   Text,
   ScrollView,
-  Image,
+  Dimensions,
   TouchableOpacity,
+  Button,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Stars from 'react-native-stars';
@@ -16,13 +17,15 @@ import axios from 'axios';
 
 import {connect} from 'react-redux';
 
+const screenWidth = Dimensions.get('window').width;
+
 class Evaluation extends Component {
   constructor(props) {
     super(props);
     this.state = {
       users: [],
     };
-    this.getUsers();
+    // this.getUsers();
   }
 
   getUsers = () => {
@@ -35,28 +38,53 @@ class Evaluation extends Component {
     });
   };
 
+  submitScore = () => {
+    this.props.navigation.navigate('Friends');
+  };
+
   render() {
     var userList = this.state.users;
     return (
       <View style={{flex: 1}}>
         <ScrollView style={{backgroundColor: 'white'}}>
-          <Text>평가 스크린</Text>
-          <Stars
-            default={2.5}
-            count={5}
-            half={true}
-            starSize={50}
-            fullStar={require('../../assests/images/filledstar.png')}
-            emptyStar={require('../../assests/images/emptystar.png')}
-            halfStar={require('../../assests/images/halfstar.png')}
-          />
+          <View style={styles.container}>
+            <Text style={{fontSize: 18, fontWeight: 'bold', padding: 5}}>
+              유저 이름
+            </Text>
+            <Stars
+              default={3}
+              spacing={5}
+              update={(val) => console.log(val)}
+              count={5}
+              half={true}
+              starSize={35}
+              fullStar={require('../../assests/images/filledstar.png')}
+              emptyStar={require('../../assests/images/emptystar.png')}
+              halfStar={require('../../assests/images/halfstar.png')}
+            />
+          </View>
+          <View style={{margin: 10, alignItems: 'center'}}>
+            <Text>사용자들을 평가해 주세요.</Text>
+          </View>
+          <View
+            style={{
+              width: 70,
+              left: screenWidth - 90,
+            }}>
+            <Button title="제출" onPress={() => this.submitScore()} />
+          </View>
         </ScrollView>
       </View>
     );
   }
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    margin: 10,
+    alignItems: 'center',
+  },
+});
 
 function mapStateToProps(state) {
   return {

@@ -16,7 +16,7 @@ class MyProfile extends Component {
               resizeMode="contain"
               style={{width: 60, height: 60, margin: 10}}
             />
-            <Text style={{fontSize: 20, fontWeight: 'bold'}}>
+            <Text style={{fontSize: 20, fontWeight: 'bold', marginLeft: 10}}>
               {this.props.user.name}
             </Text>
           </View>

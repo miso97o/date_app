@@ -193,6 +193,7 @@ class MapComponent extends Component {
         this.props.User.auth.userId,
         this.props.User.auth.userName,
       );
+      this.setState({mode: 'enter'});
       this.props.navigation.push('Chat');
     });
   };

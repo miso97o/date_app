@@ -11,6 +11,7 @@ import {
 
 import {CommonActions} from '@react-navigation/routers';
 import {connect} from 'react-redux';
+import {URL} from '../../utils/misc';
 
 class MapDrawer extends Component {
   constructor(props) {
@@ -24,6 +25,10 @@ class MapDrawer extends Component {
         params: {},
       }),
     );
+  };
+
+  logout = () => {
+    fetch(`${URL}user/logout`).then((res) => console.log(res));
   };
 
   render() {
@@ -56,6 +61,15 @@ class MapDrawer extends Component {
             </TouchableOpacity>
           </View>
         </ScrollView>
+        <TouchableOpacity
+          style={{position: 'absolute', right: 15, bottom: 10}}
+          onPress={() => [this.logout(), this.props.navigation.push('SignIn')]}>
+          <Image
+            source={require('../../assests/images/logout.png')}
+            resizeMode="contain"
+            style={{width: 30, height: 30}}
+          />
+        </TouchableOpacity>
       </View>
     );
   }

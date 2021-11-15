@@ -22,23 +22,36 @@ const screenWidth = Dimensions.get('window').width;
 class Evaluation extends Component {
   constructor(props) {
     super(props);
+    const params = props.route.params;
     this.state = {
       users: [],
+      historyId: params.historyId,
     };
-    // this.getUsers();
+    this.getUsers();
   }
 
   getUsers = () => {
     axios({
       method: 'GET',
-      url: `${URL}chat/roomInfo/${this.props.Chat.roomId}`,
+      url: `${URL}history/${this.state.historyId}`,
     }).then((res) => {
-      console.log('roomInfo', res.data);
-      this.setState({users: res.data.userList, ownerId: res.data.ownerId});
+      console.log('userList', res.data);
+      this.setState({users: res.data});
     });
   };
 
+  updateScore = (userList) => {
+    console.log(userList);
+    this.setState({users: userList});
+  };
+
   submitScore = () => {
+    console.log('제출', this.state.users);
+    axios({
+      method: 'POST',
+      url: `${URL}history/${this.state.historyId}`,
+      data: {mainList: this.state.users},
+    }).then((res) => console.log(res));
     this.props.navigation.navigate('Friends');
   };
 
@@ -48,20 +61,32 @@ class Evaluation extends Component {
       <View style={{flex: 1}}>
         <ScrollView style={{backgroundColor: 'white'}}>
           <View style={styles.container}>
-            <Text style={{fontSize: 18, fontWeight: 'bold', padding: 5}}>
-              유저 이름
-            </Text>
-            <Stars
-              default={3}
-              spacing={5}
-              update={(val) => console.log(val)}
-              count={5}
-              half={true}
-              starSize={35}
-              fullStar={require('../../assests/images/filledstar.png')}
-              emptyStar={require('../../assests/images/emptystar.png')}
-              halfStar={require('../../assests/images/halfstar.png')}
-            />
+            {this.state.users.map((item, idx) => {
+              if (item.userId !== this.props.User.auth.userId) {
+                return (
+                  <View key={idx}>
+                    <Text
+                      style={{fontSize: 18, fontWeight: 'bold', padding: 5}}>
+                      {item.userName}
+                    </Text>
+                    <Stars
+                      default={3}
+                      spacing={5}
+                      update={(val) => [
+                        (userList[idx].score = val),
+                        this.updateScore(userList),
+                      ]}
+                      count={5}
+                      half={true}
+                      starSize={35}
+                      fullStar={require('../../assests/images/filledstar.png')}
+                      emptyStar={require('../../assests/images/emptystar.png')}
+                      halfStar={require('../../assests/images/halfstar.png')}
+                    />
+                  </View>
+                );
+              }
+            })}
           </View>
           <View style={{margin: 10, alignItems: 'center'}}>
             <Text>사용자들을 평가해 주세요.</Text>

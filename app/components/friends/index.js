@@ -9,27 +9,66 @@ import {
   BackHandler,
 } from 'react-native';
 import Stars from 'react-native-stars';
+import {URL} from '../../utils/misc';
 import MyProfile from './myProfile';
+
+import {connect} from 'react-redux';
 
 class FriendsComponent extends Component {
   state = {
     // 인증이 된 상태인지 확인하는 변수
     user: {
-      name: '황준원',
+      name: this.props.User.auth.userName,
       introduce: '안녕하세요',
       imagePath: '../../assests/images/good.png',
-      starScore: 3.65,
+      starScore: 0,
     },
-    starCount: 5,
+    historys: [],
   };
 
   goToInfo = (user) => {
     this.props.navigation.push('Info', user);
   };
 
-  goToChat = (user) => {
-    this.props.navigation.push('Chat', user);
+  getCategory = (key) => {
+    switch (key) {
+      case 'exercise':
+        return '운동';
+      case 'business':
+        return '거래';
+      case 'date':
+        return '이성';
+      case 'eat':
+        return '식사';
+      default:
+        return '';
+    }
   };
+
+  getHistorys = () => {
+    fetch(`${URL}history`).then((res) => {
+      console.log(res);
+      res.json().then((json) => {
+        this.setState({historys: json});
+      });
+    });
+  };
+
+  getScore = () => {
+    fetch(`${URL}user/viewUser/${this.props.User.auth.userId}`).then((res) => {
+      console.log(res);
+      res.json().then((json) =>
+        this.setState((prevState) => ({
+          user: {...prevState.user, starScore: json.score},
+        })),
+      );
+    });
+  };
+
+  componentDidMount() {
+    this.getHistorys();
+    this.getScore();
+  }
 
   render() {
     return (
@@ -41,15 +80,16 @@ class FriendsComponent extends Component {
             <Text>평가점수</Text>
           </View>
           <View style={styles.scoreContainer}>
-            <Stars
-              display={this.state.user.starScore}
-              count={this.state.starCount}
-              spacing={5}
-              starSize={50}
-              fullStar={require('../../assests/images/filledstar.png')}
-              emptyStar={require('../../assests/images/emptystar.png')}
-            />
-            <Text>{`${this.state.user.starScore}/${this.state.starCount}`}</Text>
+            {this.state.user.starScore !== 0 ? (
+              <Stars
+                display={this.state.user.starScore}
+                spacing={5}
+                starSize={50}
+                fullStar={require('../../assests/images/filledstar.png')}
+                emptyStar={require('../../assests/images/emptystar.png')}
+              />
+            ) : null}
+            <Text>{`${this.state.user.starScore}/5`}</Text>
           </View>
 
           <View style={{marginLeft: 10}}>
@@ -61,24 +101,25 @@ class FriendsComponent extends Component {
               margin: 10,
               paddingBottom: 10,
             }}>
-            <View style={styles.container}>
-              <Text style={styles.titleText}>방 제목</Text>
-              <Text>방 정보</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => this.props.navigation.navigate('Evaluate')}
-              style={styles.button}>
-              <Text style={{fontSize: 18}}>평가 하기</Text>
-            </TouchableOpacity>
-            <View style={styles.container}>
-              <Text style={styles.titleText}>방 제목 2</Text>
-              <Text>방 정보</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => this.props.navigation.navigate('Evaluate')}
-              style={styles.button}>
-              <Text style={{fontSize: 18}}>평가 하기</Text>
-            </TouchableOpacity>
+            {this.state.historys.map((item, idx) => (
+              <View key={idx}>
+                <View style={styles.container}>
+                  <Text style={styles.titleText}>{item.chatRoomName}</Text>
+                  <Text>카테고리: {this.getCategory(item.category)}</Text>
+                  <Text>약속 이름: {item.voteName}</Text>
+                  {item.score ? <Text>평균 점수: {item.score}점</Text> : null}
+                </View>
+                <TouchableOpacity
+                  onPress={() =>
+                    this.props.navigation.navigate('Evaluate', {
+                      historyId: item.historyId,
+                    })
+                  }
+                  style={styles.button}>
+                  <Text style={{fontSize: 18}}>평가 하기</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
           </View>
         </View>
       </ScrollView>
@@ -111,4 +152,12 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FriendsComponent;
+function mapStateToProps(state) {
+  return {
+    // 리액트 네이티브의 Props의 User에 Redux Store가 가진 state안의 User를 할당함
+    User: state.User,
+    Chat: state.Chat,
+  };
+}
+
+export default connect(mapStateToProps)(FriendsComponent);

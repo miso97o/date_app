@@ -7,11 +7,12 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  Alert,
+  Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Dialog from 'react-native-dialog';
 import AndroidDialogPicker from 'react-native-android-dialog-picker';
+import Stars from 'react-native-stars';
 
 import {URL} from '../../utils/misc';
 import {leaveRoom, createVote} from '../../store/actions/chat_action';
@@ -28,6 +29,9 @@ class ChatDrawer extends Component {
       ownerId: '',
       dialogVisible: false,
       dialogText: '',
+      modalVisible: false,
+      userScore: 0,
+      modalName: '',
     };
     this.getUsers();
   }
@@ -46,12 +50,12 @@ class ChatDrawer extends Component {
       method: 'GET',
       url: `${URL}chat/roomInfo/${this.props.Chat.roomId}`,
     }).then((res) => {
-      console.log('roomInfo', res.data);
+      console.log('roomInfo', res);
       this.setState({users: res.data.userList, ownerId: res.data.ownerId});
     });
   };
 
-  changeVote = () => {
+  makeVote = () => {
     this.props.createVote(this.state.dialogText, this.props.Chat.roomId);
     this.setState({dialogVisible: false, dialogText: ''});
   };
@@ -94,12 +98,57 @@ class ChatDrawer extends Component {
           onChangeText={(value) => this.setState({dialogText: value})}
           style={{borderBottomWidth: 0.7}}
         />
-        <Dialog.Button label="예" onPress={() => this.changeVote()} />
+        <Dialog.Button label="예" onPress={() => this.makeVote()} />
         <Dialog.Button
           label="취소"
           onPress={() => this.setState({dialogVisible: false, dialogText: ''})}
         />
       </Dialog.Container>
+    );
+  };
+
+  viewScore = (userId) => {
+    fetch(`${URL}user/viewUser/${userId}`).then((res) => {
+      console.log(res);
+      res.json().then((json) =>
+        this.setState({
+          userScore: json.score,
+          modalName: json.userName,
+          modalVisible: true,
+        }),
+      );
+    });
+  };
+
+  scoreModal = () => {
+    return (
+      <Modal transparent={true} visible={this.state.modalVisible}>
+        <View style={styles.modalView}>
+          <View style={styles.modalInner}>
+            <Text style={{fontSize: 20, fontWeight: 'bold', margin: 10}}>
+              {this.state.modalName}
+            </Text>
+            {this.state.userScore !== 0 ? (
+              <Stars
+                display={this.state.userScore}
+                spacing={5}
+                starSize={30}
+                fullStar={require('../../assests/images/filledstar.png')}
+                emptyStar={require('../../assests/images/emptystar.png')}
+              />
+            ) : null}
+            <Text
+              style={{alignSelf: 'center'}}>{`${this.state.userScore}/5`}</Text>
+            <View style={styles.modalButtonView}>
+              <TouchableOpacity
+                style={{margin: 10, paddingRight: 15}}
+                onPress={() => this.setState({modalVisible: false})}>
+                <Text>취소</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     );
   };
 
@@ -109,6 +158,7 @@ class ChatDrawer extends Component {
 
     return (
       <View style={{flex: 1}}>
+        {this.scoreModal()}
         <ScrollView style={{backgroundColor: 'white'}}>
           <View style={styles.menuContainer}>
             <TouchableOpacity
@@ -158,6 +208,7 @@ class ChatDrawer extends Component {
             </Text>
             {userList.map((item, idx) => (
               <TouchableOpacity
+                onPress={() => this.viewScore(item.userId)}
                 key={idx}
                 style={{flexDirection: 'row', alignItems: 'center'}}>
                 {item.userId === this.state.ownerId ? (
@@ -221,6 +272,22 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 10,
     marginRight: 5,
+  },
+  modalView: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.50)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonView: {
+    width: 350,
+    alignSelf: 'baseline',
+    alignItems: 'flex-end',
+  },
+  modalInner: {
+    width: 350,
+    backgroundColor: 'white',
+    padding: 10,
   },
 });
 

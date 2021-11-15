@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -17,7 +18,9 @@ import {
   sendMsg,
   recieveMsg,
   completeVote,
+  getVoteState,
 } from '../../store/actions/chat_action';
+import axios from 'axios';
 
 import {connect} from 'react-redux';
 
@@ -25,18 +28,22 @@ class Chat extends Component {
   constructor(props) {
     super(props);
     console.log('store', props.Chat);
+    this.checkVoteState();
     this.state = {
       roomId: props.Chat.roomId,
       senderId: props.Chat.senderId,
       senderName: props.Chat.senderName,
       newMessage: '',
-      voteState: 'BEFORE', // before, ing, did, finish
+      voteState: 'BEFORE', // before, ing, did, finish, discover
       voteTitle: '',
+      votedUser: [],
+      modalVisible: false,
+      roomTitle: '기본',
     };
-    this.checkVoteState();
-    // connection(props.Chat.roomId, props.Chat.senderId);
-    var sock = new SockJS(`${URL}start-ws`);
+
+    var sock = new SockJS(`${URL}websocket-endpoint`);
     var ws = Stomp.over(sock);
+
     ws.connect({}, () => {
       ws.subscribe('/sub/chat/room/' + this.state.roomId, (msg) => {
         var recv = JSON.parse(msg.body);
@@ -49,7 +56,6 @@ class Chat extends Component {
           type: 'SYSTEM',
           roomId: this.state.roomId,
           senderId: this.state.senderId,
-          senderName: this.state.senderName,
           message: `${this.state.senderName}님이 입장하였습니다.`,
         }),
       ),
@@ -79,50 +85,116 @@ class Chat extends Component {
   };
 
   createVote = () => {
-    if (this.state.voteState === 'ING') {
+    if (
+      this.state.voteState !== 'discover' &&
+      this.props.Chat.voteState !== 'BEFORE'
+    ) {
       // 다른 함수 적용
       return (
-        <View style={styles.voteContainer}>
+        <TouchableOpacity
+          style={styles.voteContainer}
+          onPress={() => this.setState({modalVisible: true})}>
           <Icon name="vote" size={36} />
-          <View style={{justifyContent: 'center', margin: 10, width: '60%'}}>
-            <Text style={{fontSize: 19}}>{this.state.voteTitle}</Text>
+          <View
+            style={{
+              alignItems: 'center',
+              margin: 10,
+              width: '60%',
+              flexDirection: 'row',
+            }}>
+            {this.props.Chat.voteState === 'FINISH' ? (
+              <Text style={{margin: 7}}>(종료)</Text>
+            ) : null}
+            <Text style={{fontSize: 19}}>{this.props.Chat.voteTitle}</Text>
           </View>
           <View style={{flexDirection: 'row'}}>
             <TouchableOpacity
               style={styles.voteButton}
               onPress={() => {
-                this.props.completeVote();
-                this.setState({voteState: 'DID'});
-                alert('참가 투표 되었습니다.');
+                this.props.Chat.voteState === 'DID' ||
+                this.props.Chat.voteState === 'FINISH'
+                  ? alert('이미 투표했습니다.')
+                  : [
+                      this.props.completeVote(this.state.roomId),
+                      alert('투표 되었습니다.'),
+                    ];
               }}>
               <Text>참가</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.voteButton}
               onPress={() => {
-                this.setState({voteState: 'DID'});
+                this.setState({voteState: 'discover'});
               }}>
-              <Text>취소</Text>
+              <Text>숨기기</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </TouchableOpacity>
       );
     }
   };
 
   checkVoteState = () => {
-    fetch(`${URL}chat/vote/${this.state.roomId}`).then((res) =>
-      res.json().then((json) => {
-        console.log(json);
-        this.setState({voteState: json.state, voteTitle: json.name});
-        json.userList.map((item) => {
-          if (item.userId === this.props.Chat.senderId) {
-            this.setState({voteState: 'DID'});
-          }
-        });
-      }),
-    );
+    this.props.getVoteState(this.props.Chat.roomId);
   };
+
+  checkVotedUser = () => {
+    if (
+      this.state.voteState !== 'discover' &&
+      this.props.Chat.voteState !== 'BEFORE'
+    ) {
+      return (
+        <Modal transparent={true} visible={this.state.modalVisible}>
+          <View style={styles.modalView}>
+            <View style={styles.modalInner}>
+              <Text style={{fontSize: 20, fontWeight: 'bold', margin: 10}}>
+                투표자 명단
+              </Text>
+              {this.state.votedUser &&
+                this.state.votedUser.map((item, idx) => (
+                  <Text style={{margin: 10}} key={idx}>
+                    {item.userName}
+                  </Text>
+                ))}
+              <View style={styles.modalButtonView}>
+                <TouchableOpacity
+                  style={{margin: 10, paddingRight: 15}}
+                  onPress={() => this.setState({modalVisible: false})}>
+                  <Text>취소</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      );
+    }
+  };
+
+  getRoomTitle = () => {
+    axios({
+      method: 'GET',
+      url: `${URL}chat/roomInfo/${this.props.Chat.roomId}`,
+    }).then((res) => {
+      // console.log('roomInfo', res.data);
+      this.setState({roomTitle: res.data.name});
+    });
+  };
+
+  componentDidMount() {
+    this.setState({
+      voteState: this.props.Chat.voteState,
+      voteTitle: this.props.Chat.voteTitle,
+      votedUser: this.props.Chat.votedUser,
+    });
+    this.props.navigation.setOptions({headerTitle: this.state.roomTitle});
+  }
+
+  componentWillUnmount() {
+    // if (ws !== null) {
+    //   ws.disconnect();
+    // }
+  }
 
   render() {
     return (
@@ -132,12 +204,14 @@ class Chat extends Component {
           justifyContent: 'space-between',
         }}>
         {this.createVote()}
+        {this.checkVotedUser()}
         <ScrollView
           style={{flex: 1, backgroundColor: '#eeeeee'}}
           ref={(ref) => (this.scrollView = ref)}
           onContentSizeChange={() => {
             this.scrollView.scrollToEnd({animated: true});
           }}
+          showsVerticalScrollIndicator={false}
           onLayout={() => this.scrollView.scrollToEnd({animated: true})}>
           {this.props.Chat.messages.map((item, idx) => {
             if (item.senderId === 'SYSTEM') {
@@ -234,8 +308,24 @@ const styles = StyleSheet.create({
     padding: 5,
     marginLeft: 5,
     marginRight: 15,
-    borderRadius: 10,
     justifyContent: 'center',
+    right: 10,
+  },
+  modalView: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.50)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonView: {
+    width: 350,
+    alignSelf: 'baseline',
+    alignItems: 'flex-end',
+  },
+  modalInner: {
+    width: 350,
+    backgroundColor: 'white',
+    padding: 10,
   },
 });
 
@@ -244,4 +334,4 @@ function mapStateToProps(state) {
 }
 
 // eslint-disable-next-line prettier/prettier
-export default connect(mapStateToProps, {sendMsg, recieveMsg, completeVote})(Chat);
+export default connect(mapStateToProps, {sendMsg, recieveMsg, completeVote, getVoteState})(Chat);

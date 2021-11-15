@@ -9,26 +9,33 @@ import {
   LEAVE_ROOM,
   CREATE_VOTE,
   COMPLETE_VOTE,
+  GET_VOTE_STATE,
 } from '../../store/types';
+import axios from 'axios';
 
-export var sock = new SockJS(`${URL}start-ws`);
+export var sock = new SockJS(`${URL}websocket-endpoint`);
 export var ws = Stomp.over(sock);
 
 // 안쓰는 함수
-// export const connection = (roomId, senderId) => {
-//   ws.connect({}, () => {
-//     ws.subscribe('/sub/chat/room/' + roomId, (msg) => {
-//       var recv = JSON.parse(msg.body);
-//       recieveMsg(recv);
-//     });
-//     ws.send(
-//       '/pub/chat/message',
-//       {},
-//       JSON.stringify({roomId: roomId, sender: senderId}),
-//     ),
-//       (e) => alert('error', e);
-//   });
-// };
+export const connection = (roomId, senderId) => {
+  ws.connect({}, () => {
+    ws.subscribe('/sub/chat/room/' + roomId, (msg) => {
+      var recv = JSON.parse(msg.body);
+      recieveMsg(recv);
+    });
+    ws.send(
+      '/pub/chat/message',
+      {},
+      JSON.stringify({
+        roomId: roomId,
+        sender: senderId,
+        message: '테스트',
+        type: 'SYSTEM',
+      }),
+    ),
+      (e) => alert('error', e);
+  });
+};
 
 // 메세지 형식
 // var message = {
@@ -49,7 +56,6 @@ export const sendMsg =
         roomId: roomId,
         senderId: senderId,
         message: txtMsg,
-        senderName: senderName,
       }),
     );
     dispatch({
@@ -81,17 +87,14 @@ export const leaveRoom = (roomId, userId) => async (dispatch) => {
 };
 
 export const createVote = (title, roomId) => async (dispatch) => {
-  fetch(`${URL}chat/createVote/${roomId}`, {
+  axios({
     method: 'POST',
-    body: {
-      name: title,
+    url: `${URL}chat/createVote/${roomId}`,
+    data: {
       state: 'ING',
+      name: title,
     },
-    // headers: {
-    //   'Content-Type': 'application/json',
-    //   'Accept': 'application/json',
-    // },
-  }).then((res) => console.log(res));
+  }).then((response) => console.log(response));
   dispatch({type: CREATE_VOTE, payload: {title, state: 'ING'}});
 };
 
@@ -100,4 +103,13 @@ export const completeVote = (roomId) => async (dispatch) => {
     method: 'POST',
   }).then((res) => console.log(res));
   dispatch({type: COMPLETE_VOTE});
+};
+
+export const getVoteState = (roomId) => async (dispatch) => {
+  fetch(`${URL}chat/vote/${roomId}`).then((res) =>
+    res.json().then((json) => {
+      console.log(json);
+      dispatch({type: GET_VOTE_STATE, payload: json});
+    }),
+  );
 };

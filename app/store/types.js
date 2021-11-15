@@ -8,3 +8,4 @@ export const GET_ROOMID = 'get_roomid';
 export const LEAVE_ROOM = 'leave_room';
 export const CREATE_VOTE = 'create_vote';
 export const COMPLETE_VOTE = 'complete_vote';
+export const GET_VOTE_STATE = 'get_vote_state';

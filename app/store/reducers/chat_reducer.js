@@ -5,10 +5,13 @@ import {
   LEAVE_ROOM,
   CREATE_VOTE,
   COMPLETE_VOTE,
+  GET_VOTE_STATE,
 } from '../types';
 
 const initialState = {
   messages: [],
+  roomId: null,
+  senderId: null,
   // 저장하는 메세지 유형은 객체에 sender, senderId, senderName, message가 들어있는 형태
 };
 
@@ -63,8 +66,24 @@ export default function (state = initialState, {type, payload}) {
     case COMPLETE_VOTE:
       return {
         ...state,
-        voteTitle: '',
         voteState: 'DID',
+      };
+    case GET_VOTE_STATE:
+      payload.userList.map((item) => {
+        if (item.userId === state.senderId) {
+          return {
+            ...state,
+            voteTitle: payload.name,
+            voteState: 'DID',
+            votedUser: payload.userList,
+          };
+        }
+      });
+      return {
+        ...state,
+        voteTitle: payload.name,
+        voteState: payload.state,
+        votedUser: payload.userList,
       };
     default:
       return state;

@@ -1,9 +1,12 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {Component} from 'react';
 import {Animated, View} from 'react-native';
-import {auth} from '../../utils/misc';
 
-const LogoImage = require('../../assests/images/winthiary_login_logo.png');
+import {autoSignIn} from '../../store/actions/user_action';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+
+const LogoImage = require('../../assests/images/logo.png');
 
 class Loading extends Component {
   constructor(props) {
@@ -15,9 +18,9 @@ class Loading extends Component {
   }
 
   onComplete = () => {
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        this.props.navigation.navigate('AppTabComponent');
+    this.props.autoSignIn().then(() => {
+      if (this.props.User.auth.userId) {
+        this.props.navigation.navigate('Main');
       } else {
         this.props.navigation.navigate('SignIn');
       }
@@ -44,9 +47,10 @@ class Loading extends Component {
         }}>
         <Animated.Image
           source={LogoImage}
+          resizeMode="cover"
           style={{
-            width: 300,
-            height: 88,
+            width: 350,
+            height: 500,
             opacity: this.state.opacity,
             left: this.state.opacity.interpolate({
               inputRange: [0, 1],
@@ -60,4 +64,16 @@ class Loading extends Component {
   }
 }
 
-export default Loading;
+function mapStateToProps(state) {
+  return {
+    // 리액트 네이티브의 Props의 User에 Redux Store가 가진 state안의 User를 할당함
+    User: state.User,
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  // reducer에 action을 알리는 함수 dispatch를 props와 엮음
+  return bindActionCreators({autoSignIn}, dispatch);
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Loading);

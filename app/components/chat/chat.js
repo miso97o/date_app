@@ -38,29 +38,30 @@ class Chat extends Component {
       voteTitle: '',
       votedUser: [],
       modalVisible: false,
-      roomTitle: '기본',
     };
 
     var sock = new SockJS(`${URL}websocket-endpoint`);
     var ws = Stomp.over(sock);
-
-    ws.connect({}, () => {
-      ws.subscribe('/sub/chat/room/' + this.state.roomId, (msg) => {
-        var recv = JSON.parse(msg.body);
-        this.props.recieveMsg(recv);
+    console.log('connected?', ws.connected);
+    if (!ws.connected) {
+      ws.connect({}, () => {
+        ws.subscribe('/sub/chat/room/' + this.state.roomId, (msg) => {
+          var recv = JSON.parse(msg.body);
+          this.props.recieveMsg(recv);
+        });
+        ws.send(
+          '/pub/chat/message',
+          {},
+          JSON.stringify({
+            type: 'SYSTEM',
+            roomId: this.state.roomId,
+            senderId: this.state.senderId,
+            message: `${this.state.senderName}님이 입장하였습니다.`,
+          }),
+        ),
+          (e) => alert('error', e);
       });
-      ws.send(
-        '/pub/chat/message',
-        {},
-        JSON.stringify({
-          type: 'SYSTEM',
-          roomId: this.state.roomId,
-          senderId: this.state.senderId,
-          message: `${this.state.senderName}님이 입장하였습니다.`,
-        }),
-      ),
-        (e) => alert('error', e);
-    });
+    }
   }
 
   onChangeInput = (value) => {
@@ -137,6 +138,11 @@ class Chat extends Component {
 
   checkVoteState = () => {
     this.props.getVoteState(this.props.Chat.roomId);
+    fetch(`${URL}chat/vote/${this.props.Chat.roomId}`).then((res) =>
+      res.json().then((json) => {
+        this.setState({votedUser: json.userList});
+      }),
+    );
   };
 
   checkVotedUser = () => {
@@ -171,29 +177,12 @@ class Chat extends Component {
     }
   };
 
-  getRoomTitle = () => {
-    axios({
-      method: 'GET',
-      url: `${URL}chat/roomInfo/${this.props.Chat.roomId}`,
-    }).then((res) => {
-      // console.log('roomInfo', res.data);
-      this.setState({roomTitle: res.data.name});
-    });
-  };
-
   componentDidMount() {
     this.setState({
       voteState: this.props.Chat.voteState,
       voteTitle: this.props.Chat.voteTitle,
       votedUser: this.props.Chat.votedUser,
     });
-    this.props.navigation.setOptions({headerTitle: this.state.roomTitle});
-  }
-
-  componentWillUnmount() {
-    // if (ws !== null) {
-    //   ws.disconnect();
-    // }
   }
 
   render() {
@@ -214,7 +203,7 @@ class Chat extends Component {
           showsVerticalScrollIndicator={false}
           onLayout={() => this.scrollView.scrollToEnd({animated: true})}>
           {this.props.Chat.messages.map((item, idx) => {
-            if (item.senderId === 'SYSTEM') {
+            if (item.type === 'SYSTEM') {
               return (
                 <View
                   style={{
@@ -228,29 +217,30 @@ class Chat extends Component {
                   </Text>
                 </View>
               );
+            } else {
+              return item.sender ? (
+                <View
+                  style={{alignItems: 'flex-end', margin: 5, marginRight: 10}}
+                  key={idx}>
+                  <Text
+                    style={[styles.messages, {backgroundColor: 'yellow'}]}
+                    key={idx}>
+                    {item.txtMsg}
+                  </Text>
+                </View>
+              ) : (
+                <View
+                  style={{alignItems: 'flex-start', margin: 5, marginLeft: 10}}
+                  key={idx}>
+                  <Text>{item.senderName}</Text>
+                  <Text
+                    style={[styles.messages, {backgroundColor: 'white'}]}
+                    key={idx}>
+                    {item.txtMsg}
+                  </Text>
+                </View>
+              );
             }
-            return item.sender ? (
-              <View
-                style={{alignItems: 'flex-end', margin: 5, marginRight: 10}}
-                key={idx}>
-                <Text
-                  style={[styles.messages, {backgroundColor: 'yellow'}]}
-                  key={idx}>
-                  {item.txtMsg}
-                </Text>
-              </View>
-            ) : (
-              <View
-                style={{alignItems: 'flex-start', margin: 5, marginLeft: 10}}
-                key={idx}>
-                <Text>{item.name}</Text>
-                <Text
-                  style={[styles.messages, {backgroundColor: 'white'}]}
-                  key={idx}>
-                  {item.txtMsg}
-                </Text>
-              </View>
-            );
           })}
         </ScrollView>
         <View
@@ -264,10 +254,7 @@ class Chat extends Component {
             onChangeText={(value) => this.onChangeInput(value)}
             multiline={true}
             autoCapitalize="none"
-            style={[
-              {width: '84%', height: 48, backgroundColor: 'white'},
-              styles.messages,
-            ]}
+            style={[{width: '84%', backgroundColor: 'white'}, styles.messages]}
           />
           <TouchableOpacity
             style={styles.button}
@@ -292,7 +279,6 @@ const styles = StyleSheet.create({
     width: '16%',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 48,
   },
   voteContainer: {
     backgroundColor: 'white',

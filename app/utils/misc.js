@@ -1,7 +1,7 @@
-export const APIKEY = 'AIzaSyBwLWHUNQir-HoAGjtYe6eB8SgDpJL3CJg'; //firebase에서 제공하는 apikey
-export const SIGNUP = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${APIKEY}`;
-export const SIGNIN = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${APIKEY}`;
-export const REFRESH = `https://securetoken.googleapis.com/v1/token?key=${APIKEY}`;
+// export const APIKEY = 'AIzaSyBwLWHUNQir-HoAGjtYe6eB8SgDpJL3CJg'; //firebase에서 제공하는 apikey
+// export const SIGNUP = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${APIKEY}`;
+// export const SIGNIN = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${APIKEY}`;
+// export const REFRESH = `https://securetoken.googleapis.com/v1/token?key=${APIKEY}`;
 export const CLIENT_ID = '5gikt2ep43';
 export const CLIENT_SECERET = 'p3k7xH75G8QvPxWORocGDJrKmOVIzCHzZGf2oaWr';
 export const URL = 'http://13.125.119.211:8080/';

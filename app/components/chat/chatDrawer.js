@@ -177,11 +177,16 @@ class ChatDrawer extends Component {
             <TouchableOpacity
               style={styles.menuContent}
               onPress={() => {
-                if (this.state.ownerId === this.props.User.auth.userId) {
-                  this.endVote();
-                } else {
-                  alert('방장만 가능합니다.');
-                }
+                if (
+                  this.props.Chat.voteState === 'DID' ||
+                  this.props.Chat.voteState === 'ING'
+                ) {
+                  if (this.state.ownerId === this.props.User.auth.userId) {
+                    this.endVote();
+                  } else {
+                    alert('방장만 가능합니다.');
+                  }
+                } else alert('투표가 진행중이 아닙니다.');
               }}>
               <Icon name="check-circle-outline" size={36} />
               <Text> 약속 완료</Text>

@@ -17,6 +17,7 @@ import EnlargedImage from './components/friends/enlargeImage';
 import MapDrawer from './components/map/mapDrawer';
 import ChatDrawer from './components/chat/chatDrawer';
 import Evaluate from './components/friends/evaluate';
+import Loading from './components/auth/loading';
 import Logo from './utils/logo';
 // import Loading from './components/auth/loading';
 
@@ -171,7 +172,11 @@ const MainTabComponent = () => {
 export const RootNavigator = () => {
   return (
     <AuthStack.Navigator>
-      {/* <AuthStack.Screen name="Loading" component={Loading} /> */}
+      <AuthStack.Screen
+        name="Loading"
+        component={Loading}
+        options={{headerShown: false}}
+      />
       <AuthStack.Screen
         name="SignIn"
         component={SignIn}
@@ -200,7 +205,7 @@ export const RootNavigator = () => {
               <Icon name="map-outline" size={36} />
             </TouchableOpacity>
           ),
-          headerTitle: '',
+          headerTitle: '채팅방',
         })}
       />
     </AuthStack.Navigator>

@@ -39,7 +39,7 @@ export default function (state = initialState, {type, payload}) {
         if (state.senderId === message.senderId) {
           return state;
         } else {
-          return {...state, messages: [...state, message]};
+          return {...state, messages: [...state.messages, message]};
         }
       }
     case SEND_MESSAGE:

@@ -43,6 +43,7 @@ export const connection = (roomId, senderId) => {
 //   senderId: String (email 형식),
 //   senderName: String,
 //   txtMsg: String,
+//   type: 'USER'
 // };
 
 export const sendMsg =
@@ -65,6 +66,7 @@ export const sendMsg =
         senderId: senderId,
         txtMsg: txtMsg,
         senderName: senderName,
+        type: 'USER',
       },
     });
   };
